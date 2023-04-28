@@ -1,0 +1,89 @@
+<aura:component implements="forceCommunity:availableForAllPageTypes" access="global" controller="DPM_PersonnelMasterController">
+<aura:attribute name="searchFields" type="Map" default="{'primaryJobOnly':false,'showInactiveEmployees':false}" description="Used to store the search field and value map"/>
+<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+<aura:attribute name="mapDPMEmployee" type="Map" description="Map of DPM Employees" />
+<aura:attribute name="existingEmployeeList" type="List" description="List of Existing Employee" />
+<aura:attribute name="fromPortal" type="Boolean" default="true" description="Checks if DPM is accessed through the Portal"/>
+<aura:attribute name="currentEmployee" type="Map" description="Current logged in Employee"/>
+<aura:attribute name="hasAccess" type="Boolean" default="false" description="Used to check if the user has access to DPM"/>
+<aura:attribute name="showSearchResults" type="Boolean" default="false" description="Search Results tab is shown when search is done"/>
+<aura:attribute name="errorMessage" type="String" default="" description="Used to show error message"/>
+<aura:attribute name="totalCount" type="Integer" default="0" description="Total Existing Employees"/>
+<aura:attribute name="selectedTab" type="String" description="Used to set selected tab"/>
+<aura:attribute name="corporatePermissions" type="Map" default="{}" description="Used to store corporate permissions"/>
+<aura:attribute name="appLinks" type="List" default="[]" />
+<aura:attribute name="sessionSettings" type="Map" default="{
+                                                           'existingEmployeeColumns':
+                                                           [
+                                                           {'label':'Name','name':'Name'},
+                    {'label':'Store Name - Id','name':'Store'},
+                    {'label':'Job Position','name':'Job_Position'},
+                    {'label':'Active/Terminated','name':'RE_Psn_Active__c'},
+                    {'label':'Position Start Date','name':'Position_Start_Date'},
+                    {'label':'Primary CDSID','name':'CDSID'},
+                    {'label':'Country','name':'country'}
+                                                           ],
+                                                           'sortBy':'Name',
+                                                           'sortDirection':'ASC',
+                                                           'filterBy':'',
+                                                           'filterString':'',
+                                                           'showViewMore':true,
+                                                           'intOffset':0,
+                                                           'intLimit':50,
+                                                           'skipOffset':false
+                                                           }" description="Used to store the Sorting/Filtering information"/>
+                                                           <aura:handler name="changeDPMEvent" event="c:DPM_ChangeEvt" action="{!c.handleSessionSettingChange}"/>
+
+<div class="slds-is-relative">
+    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" aura:id="idSpinner" class="slds-hide"/>
+    <div class="slds-p-vertical_large">            
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                <h2>Digital Personnel Management</h2>   
+                <ul class="slds-list_horizontal slds-has-dividers_left slds-has-block-links">
+                    <li class="slds-item slds-p-vertical_small"><a href="" target="_blank" onclick="{!c.openSingleFile}">User Guide</a></li>
+                    <aura:iteration items="{!v.appLinks}" var="link">
+                        <aura:if isTrue="{!link.URL__c}">
+                            <li class="slds-item slds-p-vertical_small"><a href="{!link.URL__c}" target="_blank">{!link.MasterLabel}</a></li>
+                            <aura:set attribute="else">
+                                <li class="slds-item slds-p-vertical_small">{!link.MasterLabel}</li>
+                            </aura:set>
+                        </aura:if>
+                    </aura:iteration>
+                </ul>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_2-of-3">
+                <div style="text-align:right">
+                        <aura:if isTrue="{!v.fromPortal || v.corporatePermissions.editPermission}">
+                            <button class="slds-button slds-button_brand-reverse" 
+                                    title="Back" onclick="{!c.downloadButtonClicked}">
+                                Download
+                            </button>                          
+                        </aura:if>   
+                        <aura:if isTrue="{!v.fromPortal || v.corporatePermissions.editPermission}">
+                            <button class="slds-button slds-button_brand-reverse" 
+                                    title="Back" onclick="{!c.backButtonClicked}">
+                                Back
+                            </button>                          
+                        </aura:if>                          
+                    </div>
+            </div>
+           
+        </div>
+    </div>   
+        <lightning:tabset selectedTabId="{!v.selectedTab}">                 
+                    <lightning:tab label="Search Results" aura:id="idSearchResults" id="idSearchResults">     
+                       
+                        <c:DPM_PersonnelMasterList aura:id="idPMList" sessionSettings="{!v.sessionSettings}" existingEmployees="{!v.existingEmployeeList}" mode="search" fromPortal="{!v.fromPortal}" corporatePermissions="{!v.corporatePermissions}"/>
+                        <aura:if isTrue="{!v.sessionSettings.showViewMore}">
+                            <div class="slds-align_absolute-center slds-m-top_medium">
+                                <lightning:button variant="brand" label="View More" onclick="{!c.viewMore}" class="view-button"/>
+                            </div>          
+                        </aura:if>
+                                      
+                    </lightning:tab>              
+        </lightning:tabset>
+    
+</div>
+<div>{!v.body}</div>
+</aura:component>

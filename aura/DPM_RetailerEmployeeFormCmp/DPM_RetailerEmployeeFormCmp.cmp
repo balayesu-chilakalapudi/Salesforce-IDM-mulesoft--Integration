@@ -1,0 +1,426 @@
+<aura:component controller="DPM_PersonnelMasterController">    
+    <aura:attribute name="genderList" type="List" description="Stores the Gender Picklist values from the DPM Employee object"/>
+    <aura:attribute name="prefixList" type="List" description="Stores the Prefix Picklist values from the DPM Employee object"/>
+    <aura:attribute name="suffixList" type="List" description="Stores the Suffix Picklist values from the DPM Employee object"/>
+    <aura:attribute name="statesList" type="List" description="Stores the State Picklist values from the DPM Employee object"/>
+    <aura:attribute name="countryList" type="List" description="Stores the Country Picklist values from the DPM Employee object"/>
+    <aura:attribute name="mapCountryWithStates" type="Map" description="Stores the map of country with states"/>
+    <aura:attribute name="account" type="Object" description="The dealership of the employee" />
+    <aura:attribute name="DPMEmployee" type="Map" description="Stores the DPM Employee record" default="{}"/>
+    <aura:attribute name="showSSN" type="Boolean" default="false" description="Used for showing SSN"/>
+    <aura:attribute name="SSNBtnLabel" type="String" default="" description="Used for showing SSN button label"/>
+    <aura:attribute name="confirmEmail" type="String" description="Used for email confirmation"/>
+    <aura:attribute name="confirmSSN" type="String" description="Used for SSN confirmation" />
+    <aura:attribute name="positionsList" type="List" description="Stores the Positions Picklist values for the DPM Employee"/>
+    <aura:attribute name="primaryPositionsList" type="List" description="Stores the Primary Positions for the DPM Employee"/>
+    <aura:attribute name="ownerPositionsList" type="List" description="Stores the Owner Positions for the DPM Employee"/>
+    <aura:attribute name="incentivePositionsList" type="List" description="Stores the Incentive Eligible Positions"/>
+    <aura:attribute name="DPMJobPositions" type="List" description="Stores the DPM Employee Job Positions" default="[]"/>
+    <aura:attribute name="blnReadOnly" type="boolean" description="Displays all the fields in read only mode" default="true"/>
+    <aura:attribute name="blnSubmitDisabled" type="boolean" description="Used to disable the submit button" default="true"/>
+    <aura:attribute name="hasAccess" type="Boolean" description="Indicates whether the user has record access/valid form" default="false" />
+    <aura:attribute name="errorMessage" type="String" description="Store the Error message" default=""/>
+    <aura:attribute name="submittedMessage" type="String" description="Store the Submitted message" default=""/>
+    <aura:attribute name="blnDuplicateFound" type="Boolean" description="Indicates if the profile is duplicate" default="false"/>
+    <aura:attribute name="blnSSNMismatch" type="Boolean" description="Indicates if there is a SSN mismatch" default="false"/>
+    <aura:attribute name="lstDuplicateRecords" type="List" description="Stores the duplicate records found from the SF DB"/>
+    <aura:attribute name="blnSSNMissingSubmit" type="Boolean" description="Indicates if SSN missing modal is called from Submit" default="false"/>
+    <aura:attribute name="DPMProficiency" type="List" description="Stores the DPMProficiency1 Picklist values " />
+    <aura:attribute name="languageList" type="List" description="Stores the Language Picklist values" default=""/>
+    <aura:attribute name="raceList" type="List" description="Stores the Race Picklist values" default=""/>
+    <aura:attribute name="otherRace" type="String" description="Stores the other Race value" default=""/>
+    <aura:attribute name="ethnicityList" type="List" description="Stores the Ethnicity Picklist values" default=""/>
+    <aura:attribute name="otherEthnicity" type="String" description="Stores the other Ethnicity value" default=""/>
+    <aura:attribute name="diversityData" type="Object" description="The map of all the diversity data by country" />
+    <aura:attribute name="addressFieldDisable" type="Object" default="false" description="Used for address realted fields for Employee Registration form "/>
+    <aura:attribute name="strJobPositionList" type="String" default="" description="Used to store DPMEmployee Job Positions for checking incentive eligibility" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>    
+    <aura:handler name="dpmToastEvt" event="c:DPM_ToastHandlerEvt" action="{!c.handlePromptEvent}"/>
+    <aura:handler name="dpmNotificationEvt" event="c:DPM_NotificationModalEvent" action="{!c.handleNotificationEvent}"/>
+    
+    <aura:registerEvent name="DPM_PersonnelMasterHandleRecordEvt" type="c:DPM_PersonnelMasterHandleRecordEvt" />
+    <div>
+        <div class="slds-align_absolute-center slds-m-top_medium">
+            <img src="{!$Label.c.DMT_VolvoLogoURL}"/>
+        </div>
+        <div class="slds-hide" aura:id="idSpinnerDiv">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" aura:id="idSpinner"/>
+        </div>
+        <aura:if isTrue="{!v.hasAccess}">
+            {!v.body}
+            <aura:if isTrue="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}">
+                <div class="slds-m-top_medium">
+                    <header class="slds-text-heading_large slds-text-align_center classBold">Employee Registration</header>
+                    <div class="emphasis slds-align_absolute-center" style="height:3rem">Please verify your information. If you think this is not your profile, cancel and contact your store administrator. If your information is not current, you can submit this form, and update your information under "my profile" once created</div>
+                </div>
+                <aura:set attribute="else">
+                    <div class="slds-m-top_medium">
+                        <header class="slds-text-heading_large slds-text-align_center classBold">New Employee Registration</header>
+                    </div>
+                </aura:set>
+            </aura:if>
+            <div>
+                <p class="slds-m-around_xx-large">
+                    <div class="slds-grid slds-wrap slds-m-around_xx-large classOuterGrid">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                            <div class="uiInput">
+                                <label class="slds-form-element__label">Store Name - Number</label>
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!v.DPMEmployee.DPM_Account__r.Name != NULL}">
+                                        {!v.DPMEmployee.DPM_Account__r.Name} - {!v.DPMEmployee.DPM_Account__r.Retailer__c}
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select aura:id="gender" label="Gender" value="{!v.DPMEmployee.DPM_Gender__c}" required="true" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" messageWhenValueMissing="Select Gender">
+                                        <aura:iteration items="{!v.genderList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Gender__c}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                        <aura:if isTrue="{!v.DPMEmployee.DPM_Gender__c=='Non-binary'}">                                        
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input aura:id="otherbox"  
+                                                         disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}"
+                                                         type="text" label="Other Gender" value="{!v.DPMEmployee.DPM_Other_Gender__c}" onblur="{!c.capitalizeInput}" maxlength="255" messageWhenValueMissing="Enter Other Gender"/>                                        
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select aura:Id="prefix" label="Prefix" value="{!v.DPMEmployee.DPM_Prefix__c}" required="true" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" messageWhenValueMissing="Select Prefix">
+                                        <aura:iteration items="{!v.prefixList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Prefix__c}"></option>		
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input aura:id="legalFName" type="text" label="Legal First Name" value="{!v.DPMEmployee.DPM_Legal_First_Name__c}" onblur="{!c.capitalizeInput}" maxlength="255" required="true" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" messageWhenValueMissing="Enter Legal First Name"/>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input type="text" label="Middle Name" value="{!v.DPMEmployee.DPM_Middle_Name__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" maxlength="255"/>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input aura:id="lastName" type="text" label="Last Name" value="{!v.DPMEmployee.DPM_Last_Name__c}" onblur="{!c.capitalizeInput}" maxlength="255" required="true" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" messageWhenValueMissing="Enter Last Name"/>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select label="Suffix" value="{!v.DPMEmployee.DPM_Suffix__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}">
+                                        <aura:iteration items="{!v.suffixList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Suffix__c}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input type="text" label="Preferred First Name" aura:id="preferFName" value="{!v.DPMEmployee.DPM_Preferred_First_Name__c}" maxlength="255" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" onblur="{!c.capitalizeInput}"/>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="hireDate" type="date" label="Hire Date" value="{!v.DPMEmployee.DPM_Hire_Date__c}" disabled="true" dateStyle="short"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            Registration Email
+                            <div class="tooltip">
+                                <lightning:icon size="x-small" iconName="utility:info" alternativeText="info" title="info" />
+                                <!--This email is used for identification purposes in our Personnel Management system. It should preferably be a personal email -->
+                                <span class="tooltiptext">This email is used for registration and identification purposes in our Personnel Management system. Please enter your Retailer work email. If you do not have one, you may use your personal email</span>
+                            </div>
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input variant="label-hidden" aura:id="email" type="email" label="Registration Email"
+                                                     title="This email is used for registration and identification purposes in our Personnel Management system"
+                                                     value="{!v.DPMEmployee.DPM_Email__c}" required="true" pattern="{!$Label.c.DPM_Email_Pattern}" 
+                                                     messageWhenPatternMismatch="The email entered is not valid" messageWhenBadInput="The email entered is not valid"
+                                                     messageWhenValueMissing="Enter Email Address" onchange="{!c.checkConfirmation}"/>
+                                </form>
+                            </div>
+                        </div> 
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            Confirm Registration Email
+                            <div class="tooltip">
+                                <lightning:icon size="x-small" iconName="utility:info" alternativeText="info" title="info" />
+                                <span class="tooltiptext">This email is used for registration and identification purposes in our Personnel Management system. Please enter your Retailer work email. If you do not have one, you may use your personal email</span>
+                            </div>
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off"> 
+                                    <lightning:input variant="label-hidden" aura:id="confirmEmail" type="email" label="Confirm Registration Email"
+                                                     title="This email is used for registration and identification purposes in our Personnel Management system"
+                                                     value="{!v.confirmEmail}" required="true" pattern="{!$Label.c.DPM_Email_Pattern}"
+                                                     messageWhenPatternMismatch="The email entered is not valid" 
+                                                     messageWhenBadInput="The email entered is not valid"
+                                                     messageWhenValueMissing="Confirm Email Address" oncontextmenu="{!c.handleContext}" onpaste="{!c.handlePaste}" onchange="{!c.checkConfirmation}"/>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            Personal Email
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off"> 
+                                    <lightning:input variant="label-hidden" aura:id="idPersonalEmail" type="email" label="Personal Email"
+                                                     value="{!v.DPMEmployee.DPM_Personal_Email__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" pattern="{!$Label.c.DPM_Email_Pattern}" 
+                                                     messageWhenPatternMismatch="The email entered is not valid" messageWhenBadInput="The email entered is not valid"
+                                                     messageWhenValueMissing="Enter Personal Email"/>
+                                </form>
+                            </div>
+                        </div>
+                        <aura:if isTrue="{!(v.DPMEmployee.DPM_Request_Type__c != 'Extension' &amp;&amp; v.DPMEmployee.DPM_Country__c != 'Mexico' &amp;&amp; v.DPMEmployee.DPM_Country__c != 'Canada')}">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-grid slds-wrap">
+                                            <div class="slds-col slds-size_8-of-12">
+                                                <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'Canada')}">  
+                                                    <!--
+                                                    <lightning:input aura:id="idSSN" type="{!v.showSSN?'text':'password'}" label="SIN" disabled="false" placeholder="xxx-xxx-xxx" pattern="{!$Label.c.DPM_SIN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format" value="{!v.DPMEmployee.DPM_SSN_SIN__c}" onchange="{!c.checkConfirmation}"/>
+													-->                                                    
+													<aura:set attribute="else">                                            
+                                                        <lightning:input aura:id="idSSN" type="{!v.showSSN?'text':'password'}" label="SSN" disabled="false" placeholder="xxx-xx-xxxx" pattern="{!$Label.c.DPM_SSN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format" value="{!v.DPMEmployee.DPM_SSN_SIN__c}" onchange="{!c.checkConfirmation}"/>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                            <div class="slds-col slds-size_4-of-12 showSSNBtn">
+                                                 <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c != 'Canada')}">  
+                                                <button class="slds-button slds-button_brand" onclick="{!c.showHideSSN}">{!v.SSNBtnLabel}</button>
+                                                </aura:if>
+                                                </div>
+                                        </div>                                    
+                                    </div>
+                                </div>
+                            </div> 
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'Canada')}">
+                                            <!--
+                                            <lightning:input aura:id="idConfirmSSN" type="{!v.showSSN?'text':'password'}" label="Confirm SIN" value="{!v.confirmSSN}" placeholder="xxx-xxx-xxx" oncontextmenu="{!c.handleContext}" onpaste="{!c.handlePaste}" onchange="{!c.checkConfirmation}" pattern="{!$Label.c.DPM_SIN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format"/>
+                                            -->
+											<aura:set attribute="else">
+                                                <lightning:input aura:id="idConfirmSSN" type="{!v.showSSN?'text':'password'}" label="Confirm SSN" value="{!v.confirmSSN}" placeholder="xxx-xx-xxxx" oncontextmenu="{!c.handleContext}" onpaste="{!c.handlePaste}" onchange="{!c.checkConfirmation}" pattern="{!$Label.c.DPM_SSN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </div> 
+                        </aura:if>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <!--<lightning:input aura:id="cellphone" type="tel" label="Personal Phone#" value="{!v.DPMEmployee.DPM_Cell_Phone__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Cell Phone" messageWhenTooShort="Cell Phone is not valid. Please enter a 10 digit Phone Number."></lightning:input>-->
+                                    <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'Mexico')}">
+                                        <lightning:input aura:id="cellphoneMex" type="tel" label="Contact Phone#" value="{!v.DPMEmployee.DPM_Cell_Phone__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Cell Phone" messageWhenTooShort="Cell Phone is not valid. Please enter a 10 digit Phone Number."></lightning:input>
+                                        <aura:set attribute="else">
+                                            <lightning:input aura:id="cellphone" type="tel" label="Personal Phone#" value="{!v.DPMEmployee.DPM_Cell_Phone__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Cell Phone" messageWhenTooShort="Cell Phone is not valid. Please enter a 10 digit Phone Number."></lightning:input>
+                                        </aura:set>
+                                    </aura:if>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input aura:id="address" type="text" label="Home Address: Line 1" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" value="{!v.DPMEmployee.DPM_Home_Address_Street__c}" disabled="{! and(v.addressFieldDisable.DPM_Home_Address_Street__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" messageWhenValueMissing="Enter Home Address"/>
+                                </form>
+                            </div>
+                        </div>  
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input type="text" label="Address: Line 2" disabled="{!v.DPMEmployee.DPM_Request_Type__c == 'Extension'}" value="{!v.DPMEmployee.DPM_Home_Address_Street_2__c}"/>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <lightning:input aura:id="city" type="text" label="City" disabled="{!and(v.addressFieldDisable.DPM_City__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" value="{!v.DPMEmployee.DPM_City__c}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" messageWhenValueMissing="Enter City"/>
+                                </form>
+                            </div>
+                        </div>                        
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'United States')}">
+                                        <lightning:select aura:id="idState" label="State" disabled="{!and(and(v.addressFieldDisable.DPM_US_State__c, v.DPMEmployee.DPM_US_State__c != ''), v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" value="{!v.DPMEmployee.DPM_US_State__c}" required="true" messageWhenValueMissing="Select State">
+                                            <aura:iteration items="{!v.statesList}" var="item">
+                                                <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_US_State__c}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                        <aura:set attribute="else">
+                                            <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'Canada')}">
+                                                <lightning:select aura:id="idStateCan" label="Province" disabled="{!and(v.addressFieldDisable.DPM_Canadian_State__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" value="{!v.DPMEmployee.DPM_Canadian_State__c}" required="true" messageWhenValueMissing="Select Province">
+                                                    <aura:iteration items="{!v.statesList}" var="item">
+                                                        <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Canadian_State__c}"></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                                <aura:set attribute="else">
+                                                    <lightning:select aura:id="idStateMex" label="State" disabled="{!and(v.addressFieldDisable.DPM_Mexican_State__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" value="{!v.DPMEmployee.DPM_Mexican_State__c}" required="false" messageWhenValueMissing="Select State">
+                                                        <aura:iteration items="{!v.statesList}" var="item">
+                                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Mexican_State__c}"></option>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select aura:id="idCountry" disabled="{!and(v.DPMEmployee.DPM_Country__c != null, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" label="Country" value="{!v.DPMEmployee.DPM_Country__c}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" messageWhenValueMissing="Select Country" onchange="{!c.countryChanged}">
+                                        <aura:iteration items="{!v.countryList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Country__c}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>                        
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <form class="slds-form-element__control" autocomplete="off">
+                                    <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'Canada')}">
+                                        <lightning:input disabled="{!and(v.addressFieldDisable.DPM_Zipcode__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" aura:id="zipcodeCan" type="text" label="Postal Code" value="{!v.DPMEmployee.DPM_Zipcode__c}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" pattern="{!$Label.c.DPM_PostalCode_CAN_Format}" messageWhenBadInput="Postal Code is Invalid" messageWhenPatternMismatch="Postal Code is InValid" messageWhenValueMissing="Enter Postal Code"/>
+                                        <aura:set attribute="else">
+                                            <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c == 'Mexico')}">
+                                                <lightning:input disabled="{!and(v.addressFieldDisable.DPM_Zipcode__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" aura:id="postalcodeMex" type="text" label="Postal Code" value="{!v.DPMEmployee.DPM_Zipcode__c}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" pattern="{!$Label.c.DPM_PostalCode_Mexican_Format}" messageWhenBadInput="Postal Code is Invalid" messageWhenPatternMismatch="Postal Code is InValid" messageWhenValueMissing="Enter Postal Code"/>
+                                                <aura:set attribute="else">
+                                                    <lightning:input disabled="{!and(v.addressFieldDisable.DPM_Zipcode__c, v.DPMEmployee.DPM_Request_Type__c == 'Extension')}" aura:id="zipcode" type="text" label="Zip Code" value="{!v.DPMEmployee.DPM_Zipcode__c}" required="{!v.DPMEmployee.DPM_Country__c != 'Mexico'}" pattern="{!$Label.c.DPM_PostalCode_US_Format}" messageWhenBadInput="Zip code is Invalid" messageWhenPatternMismatch="Zip code is Invalid" messageWhenValueMissing="Enter Zip Code"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </form>
+                            </div>
+                        </div> 
+                        <!-- Diversity Data -->
+                        <aura:if isTrue="{!and(v.DPMEmployee.DPM_Request_Type__c != 'Extension',v.DPMEmployee.DPM_Country__c != 'Mexico')}">
+                            <!-- Diversity Data: Race and Ethnicity -->
+                            <c:DPM_DiversityData aura:id="idDiversityData" DPMEmployee="{!v.DPMEmployee}" raceList="{!v.raceList}" otherRace="{!v.otherRace}" ethnicityList="{!v.ethnicityList}" country="{!v.DPMEmployee.DPM_Country__c}"/>                            
+                            <!-- Diversity Data: Language -->                            
+                            <c:DPM_EmployeeProfileLanguageChild aura:id="idLanguageCmp" dpmEmployee="{!v.DPMEmployee}" languageList="{!v.languageList}" dpmProficiency="{!v.DPMProficiency}" fromEmployeeProfile="false" />
+                            <!-- Diversity Data: Veteran Checkbox -->
+                            <aura:if isTrue="{!(v.DPMEmployee.DPM_Country__c=='United States')}">
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                    <div class="uiInput">                               
+                                        <form class="slds-form-element__control" autocomplete="off">
+                                            <lightning:input aura:id="idUSMilitary" label="US Military or National Guard Veteran" type="checkbox" checked="{!v.DPMEmployee.DPM_US_Military__c}" disabled="{!v.DPMEmployee.DPM_Request_Type__c=='Extension'}" variant="label-stacked"/>                                    
+                                        </form>
+                                    </div>
+                                </div> 
+                            </aura:if>
+                        </aura:if>
+                        <!-- Diversity Data -->
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1 slds-box classFullWidth slds-m-top_medium">
+                            <label class="slds-form-element__label">Job Positions</label>
+                            <c:DPM_NewRetailerEmployeeJobPositions aura:id="idJPCmp" jobPositions="{!v.DPMJobPositions}" positionsList="{!v.positionsList}" primaryPositionsList="{!v.primaryPositionsList}" ownerPositionsList="{!v.ownerPositionsList}" blnReadOnly="{!v.blnReadOnly}"/>
+                            <aura:if isTrue="{!!v.blnReadOnly}">
+                                <div class="slds-m-left_small"><a onclick="{!c.addNewPosition}">+ Add Position</a></div>
+                            </aura:if>
+                        </div>
+                        <aura:if isTrue="{!v.DPMEmployee.DPM_Owner__c}">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="{!v.blnReadOnly}" aura:id="idOwner" type="checkbox" label="Owner" checked="{!v.DPMEmployee.DPM_Owner__c}" variant="label-stacked" onchange="{!c.ownerSelected}"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:select disabled="{!v.blnReadOnly}" aura:id="idOwnerTitle" label="Title" value="{!v.DPMEmployee.DPM_Owner_Title__c}">
+                                            <aura:iteration items="{!v.ownerPositionsList}" var="item">
+                                                <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Owner_Title__c}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!v.DPMEmployee.DPM_Retailer_Admin__c}">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="{!v.blnReadOnly}" aura:id="idRetailerAdmin" type="checkbox" label="Retailer Admin" checked="{!v.DPMEmployee.DPM_Retailer_Admin__c}" variant="label-stacked" onchange="{!c.ownerSelected}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>                        
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1 slds-text-align_center slds-m-top_medium">
+                            <iframe id="idGoogleReCaptchaIframe" src="{!$Label.c.DPM_InstanceURL+'RetailerEmployeeForm/apex/DPM_GoogleReCaptcha?isdtp=vw'}" class="classIframe" height="110px" width="350px"></iframe>    
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1 slds-text-align_center">
+                            <button class="slds-button slds-button_brand" onclick="{!c.save}">Save</button>
+                            <button class="slds-button slds-button_brand" disabled="{!v.blnSubmitDisabled}" onclick="{!c.submit}">Submit</button>
+                        </div> 
+                    </div>            
+                </p>       
+            </div>
+            <aura:set attribute="else">
+                <aura:if isTrue="{!v.errorMessage != ''}">
+                    <div class="classBox classError slds-box">
+                        <h2>
+                            <span class="slds-assistive-text">error</span>
+                            <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small" title="Error">
+                                <lightning:icon iconName="utility:error" alternativeText="Error" title="Error"/>
+                            </span>
+                            {!v.errorMessage}
+                        </h2>
+                    </div>
+                </aura:if> 
+                <aura:if isTrue="{!v.submittedMessage != ''}">
+                    <div class="classBox classSuccess slds-box">
+                        <h2>
+                            <span class="slds-assistive-text">success</span>
+                            <span class="slds-icon_container slds-icon-utility-success slds-m-right_x-small" title="Success">
+                                <lightning:icon iconName="utility:success" alternativeText="Success" title="Success"/>
+                            </span>
+                            {!v.submittedMessage}
+                        </h2>
+                    </div>
+                </aura:if> 
+            </aura:set>
+        </aura:if>        
+    </div>
+</aura:component>

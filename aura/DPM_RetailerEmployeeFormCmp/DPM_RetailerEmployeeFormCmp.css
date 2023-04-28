@@ -1,0 +1,80 @@
+.THIS .classBold {
+	font-weight: 500;
+}
+.THIS .classOuterGrid>.slds-col {
+    padding-right: 4em;
+    padding-bottom: 1em;
+}
+.THIS .showSSNBtn {
+    text-align: right;
+    margin-top: 7%;
+}
+.THIS .slds-spinner_container {
+    position: fixed;
+}
+.THIS .classBox {
+    margin-top: 10%;
+    margin-left: 25%;
+    width: 50%;
+    border-width: medium;
+    text-align: center;    
+}
+.THIS .classError {
+    border-color: rgb(194, 57, 52);
+    color: rgb(194, 57, 52);
+}
+.THIS .classSuccess {
+    border-color: #04844b;
+    color: #04844b;
+}
+.THIS .emphasis {
+  font-family: italic;
+  font-style: italic;
+}
+.THIS .classError .slds-icon-utility-error .slds-icon-text-default {
+    fill: rgb(194, 57, 52);
+}
+.THIS .classSuccess .slds-icon-utility-success .slds-icon-text-default {
+    fill: #04844b;
+}
+.THIS .classIframe {
+    border:0px;
+}
+
+.THIS .tooltip {
+  position: relative;
+  display: inline-block;
+  
+}
+
+.THIS .tooltip .tooltiptext {
+  visibility: hidden;
+  width: 400px;
+  background-color: gray;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 5px 5px;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 0%;
+  margin-left: 0px;
+}
+
+.THIS .tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.THIS .tooltip .tooltiptext::after {
+  content: " ";
+  position: absolute;
+  top: 97%; /* At the bottom of the tooltip */
+  left: 0%;
+  margin-left: 0px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: gray transparent transparent transparent;
+}

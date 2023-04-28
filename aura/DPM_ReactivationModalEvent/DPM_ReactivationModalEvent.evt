@@ -1,0 +1,6 @@
+<aura:event type="COMPONENT" description="Event template">
+    <aura:attribute name="blnNext" type="Boolean"/>
+    <aura:attribute name="blnPrevious" type="Boolean"/>
+    <aura:attribute name="modalName" type="String"/>
+    <aura:attribute name="modalParams" type="String"/>
+</aura:event>

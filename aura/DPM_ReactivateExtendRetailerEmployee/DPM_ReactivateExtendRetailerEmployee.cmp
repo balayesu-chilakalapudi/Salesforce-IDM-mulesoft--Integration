@@ -1,0 +1,125 @@
+<aura:component controller="DPM_PersonnelMasterController">
+    <aura:attribute name="suffixList" type="List" description="Stores the Suffix Picklist values from the DPM Employee object"/>
+    <aura:attribute name="showPopup" type="boolean" description="Displays/Closes the popup when delete button clicked" default="true" />
+    <aura:attribute name="dealershipsList" type="List" description="Stores the dealerships for the first employee - Corp"/>
+    <aura:attribute name="account" type="Object" description="The dealership of the employee" />
+    <aura:attribute name="DPMEmployee" type="Map" description="Stores the DPM Employee record" default="{}"/>
+    <aura:attribute name="fromPortal" type="Boolean" default="true" description="Checks if DPM is accessed through the Portal"/>    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="DPM_MatchingProfileListBackEvent" event="c:DPM_MatchingProfileListBackEvent" action="{!c.matchingProfileListBackPressed}" />
+    <aura:handler name="DPM_MatchingProfileListCancelEvent" event="c:DPM_MatchingProfileListCancelEvent" action="{!c.matchingProfileListCancelPressed}" />
+    <aura:handler name="dpmNotificationEvt" event="c:DPM_NotificationModalEvent" action="{!c.handleNotificationEvent}"/>
+    <aura:registerEvent name="nextModalEvent" type="c:DPM_ReactivationModalEvent"/>
+    <div class="">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="{!v.blnShowDuplicatePopup?'slds-hide':'slds-modal slds-fade-in-open'}">
+            <aura:if isTrue="{!v.showPopup}">
+                <div class="slds-modal__container">
+                    
+                    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>
+                    
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{!c.close}"
+                                              alternativeText="Close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"
+                                              size="large"/>
+                        <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                            Reactivate/Extend Retailer Employee
+                        </h2>                
+                    </header>                
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <p>
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                                    <div class="uiInput">
+                                        <label class="slds-form-element__label">Store Name - Number</label>
+                                        <div class="slds-form-element__control">                                    
+                                            <aura:if isTrue="{!v.fromPortal}">
+                                                <aura:if isTrue="{!v.account.Name != NULL}">
+                                                    {!v.account.Name} - {!v.account.Retailer__c}
+                                                </aura:if>                                        
+                                                <aura:set attribute="else">
+                                                    <lightning:select aura:id="idAccount" label="Store" value="{!v.DPMEmployee.DPM_Account__c}" required="true" messageWhenValueMissing="Select Store Name">
+                                                        <aura:iteration items="{!v.dealershipsList}" var="item">
+                                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Account__c}"></option>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>                        
+                                </div>                                            
+                                <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                    <div class="uiInput">
+                                        <form class="slds-form-element__control" autocomplete="off">
+                                            <lightning:input aura:id="firstName" type="text" 
+                                                             label="Legal First Name" value="{!v.DPMEmployee.DPM_Legal_First_Name__c}"                                                                                
+                                                             maxlength="255" required="true" messageWhenValueMissing="Enter Legal First Name"/>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                    <div class="uiInput">
+                                        <form class="slds-form-element__control" autocomplete="off">
+                                            <lightning:input aura:id="preferredName" type="text" 
+                                                             label="Preferred First Name" value="{!v.DPMEmployee.DPM_Preferred_First_Name__c}"                                                                                
+                                                             maxlength="255" required="false" messageWhenValueMissing="Enter Preferred Name"/>
+                                        </form>
+                                    </div>
+                                </div>                   
+                                <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                    <div class="uiInput">
+                                        <form class="slds-form-element__control" autocomplete="off">
+                                            <lightning:input aura:id="lastName" type="text" 
+                                                             label="Last Name" value="{!v.DPMEmployee.DPM_Last_Name__c}"                                                                                
+                                                             maxlength="255" required="true" messageWhenValueMissing="Enter Last Name"/>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                    <div class="uiInput">
+                                        <div class="slds-form-element__control">
+                                            <lightning:select  label="Suffix" value="{!v.DPMEmployee.DPM_Suffix__c}">
+                                                <aura:iteration items="{!v.suffixList}" var="item">
+                                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Suffix__c}"></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div>
+                                    </div> 
+                                </div>                                                  
+                                <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                    <div class="uiInput">
+                                        <form class="slds-form-element__control" autocomplete="off">
+                                            <!-- This email is used for registration and identification purposes in our Personnel Management system -->
+                                            <lightning:input aura:id="email" type="email" 
+                                                             fieldLevelHelp="This email is used for registration and identification purposes in our Personnel Management system. Please enter your Retailer work email. If you do not have one, you may use your personal email"
+                                                             label="Registration Email" value="{!v.DPMEmployee.DPM_Email__c}"                                                                                
+                                                             maxlength="255" required="true" messageWhenValueMissing="Enter email"/>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                    <div class="uiInput">
+                                        <form class="slds-form-element__control" autocomplete="off">
+                                            <lightning:input aura:id="phoneNumber" type="tel" 
+                                                             label="Phone Number" value="{!v.DPMEmployee.DPM_Cell_Phone__c}"   
+                                                             required="false"
+                                                             pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Cell Phone" messageWhenTooShort="Cell Phone is not valid. Please enter a 10 digit Phone Number." />
+                                        </form>
+                                    </div>
+                                </div>                                
+                            </div>    
+                        </p>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_brand" onclick="{!c.next}">Next</button>
+                        <button class="slds-button slds-button_brand" onclick="{!c.close}">Cancel</button>                   
+                    </footer>
+                </div>
+            </aura:if>
+        </section>                                                                                       
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <div>{!v.body}</div>
+    </div>
+</aura:component>

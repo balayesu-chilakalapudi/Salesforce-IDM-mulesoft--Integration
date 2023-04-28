@@ -1,0 +1,252 @@
+<aura:component implements="forceCommunity:availableForAllPageTypes" access="global" controller="DPM_PersonnelMasterController" >
+<aura:attribute name="genderList" type="List" description="Stores the Gender Picklist values"/>
+    <aura:attribute name="prefixList" type="List" description="Stores the Prefix Picklist values"/>
+    <aura:attribute name="suffixList" type="List" description="Stores the Suffix Picklist values "/>
+    <aura:attribute name="ownerPositionsList" type="List" description="Stores the Owner Positions" />
+    <aura:attribute name="account" type="Object" description="Account Info" />
+    <aura:attribute name="Personrole" type="List" description="Stores the DPM Employee record" default="{}"/>
+    <aura:attribute name="blnReadOnly" type="boolean" description="Displays all the fields in read only mode" default="false"/>
+    <aura:attribute name="lastHireDate" type="String" description="Stores the Last Hire Date"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:registerEvent name="refreshDPMEvent" type="c:DPM_PersonnelMasterRefreshEvt"/>
+    
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>
+            <header class="slds-modal__header">
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{!c.close}">
+                    <lightning:icon iconName="utility:close" />
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                    {!v.blnReadOnly?'Retailer Employee Form':'Retailer Employee Form'}
+                </h2>                
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <p>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                            <div class="uiInput">
+                                <label class="slds-form-element__label">Store Name - Number</label>
+                                <div class="slds-form-element__control">                                    
+                                    <aura:if isTrue="{!v.Personrole.RE_Account__r.Name != NULL}">
+                                            {!v.Personrole.RE_Account__r.Name} - {!v.Personrole.RE_Account__r.Retailer__c}
+                                    </aura:if>                                        
+                             </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select aura:id="gender" label="Gender" value="{!v.Personrole.RE_Contact__r.DPM_Gender__c}" required="true" messageWhenValueMissing="Enter Gender">
+                                        <aura:iteration items="{!v.genderList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Gender__c}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select aura:id="prefix" label="Prefix" value="{!v.Personrole.RE_Contact__r.Salutation}" required="true" messageWhenValueMissing="Enter Prefix">
+                                        <aura:iteration items="{!v.prefixList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.Personrole.RE_Contact__r.Salutation}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="legalFName" type="text" label="Legal First Name" value="{!v.Personrole.RE_Contact__r.FirstName}" onblur="{!c.capitalizeInput}" maxlength="255" required="true" messageWhenValueMissing="Enter Legal First Name"/>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input type="text" label="Middle Name" value="{!v.Personrole.RE_Contact__r.MiddleName}" maxlength="255"/>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="lastName" type="text" label="Last Name" value="{!v.Personrole.RE_Contact__r.LastName}" onblur="{!c.capitalizeInput}" maxlength="255" required="true" messageWhenValueMissing="Enter Last Name"/>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select label="Suffix" value="{!v.Personrole.RE_Contact__r.Suffix}">
+                                        <aura:iteration items="{!v.suffixList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.Personrole.RE_Contact__r.Suffix}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input type="text" label="Preferred First Name" value="{!v.Personrole.RE_Contact__r.DPM_Preferred_First_Name__c}" maxlength="255" onblur="{!c.capitalizeInput}"/>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input max="{!v.lastHireDate}" aura:id="hireDate" type="date" label="Hire Date" value="{!v.Personrole.RE_Pos_Active_Date__c}" required="true" dateStyle="short" onblur="{!c.checkDateInput}" messageWhenValueMissing="Enter Hire Date" messageWhenRangeOverflow="Hire date is more than 2 months ahead, please create Employee closer to start date"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="email" type="email" label="Work Email" value="{!v.Personrole.DPM_Work_Email__c}" required="true" pattern="{!$Label.c.DPM_Email_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format" messageWhenValueMissing="Enter Email Address"/>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input  aura:id="address" type="Text" required="true" label="Work full address" value="{!v.Personrole.DPM_Work_Address_Street__c}" />
+                                	</div>
+                                </div>
+                            </div>
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input  aura:id="termDate" type="date" label="Termination date" value="{!v.Personrole.RE_Psn_NonActive_Date__c}" required="true" dateStyle="short"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" type="tel" label="Personal Phone #" value="{!v.Personrole.RE_Contact__r.HomePhone}" />
+                                   </div>
+                                </div>
+                            </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" type="Text" label="Home Address: Line 1" value="{!v.Personrole.RE_Contact__r.MailingStreet}" />
+                                	</div>
+                                </div>
+                            </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" aura:id="city" type="Text"  label="City" value="{!v.Personrole.RE_Contact__r.MailingCity}" />
+                                 	</div>
+                                </div>
+                            </div>
+                        <aura:if isTrue="{!(v.Personrole.RE_Contact__r.MailingCountry == 'United States')}">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" aura:id="stateid" type="Text" label="State" value="{!v.Personrole.RE_Contact__r.MailingState}" />
+                                  	</div>
+                                </div>
+                            </div>
+                            </aura:if>
+                        <aura:if isTrue="{!(v.Personrole.RE_Contact__r.MailingCountry == 'Canada')}">
+						<div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" aura:id="stateid" type="Text" label="Province" value="{!v.Personrole.RE_Contact__r.MailingState}" />
+                                	</div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" type="Text" label="Country" value="{!v.Personrole.RE_Contact__r.MailingCountry}" />
+                                	</div>
+                                </div>
+                            </div>
+                        <aura:if isTrue="{!(v.Personrole.RE_Contact__r.MailingCountry == 'United States')}">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" aura:id="zipcode" type="Text" label="Zip Code" value="{!v.Personrole.RE_Contact__r.MailingPostalCode}" />
+                                  	</div>
+                                </div>
+                            </div>
+                            </aura:if>
+                        <aura:if isTrue="{!(v.Personrole.RE_Contact__r.MailingCountry == 'Canada')}">
+						<div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input disabled="true" aura:id="zipcode" type="Text" label="Postal Code" value="{!v.Personrole.RE_Contact__r.MailingPostalCode}" />
+                                	</div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        
+                        
+                        
+                        
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="idRetailerAdmin" type="checkbox" label="Retailer Admin" checked="{!v.Personrole.RE_IsAdmin__c}" variant="label-stacked" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input  aura:id="idOwner" type="checkbox" label="Owner" checked="{!v.Personrole.DPM_Owner__c}" variant="label-stacked" onchange="{!c.ownerSelected}"/>
+                                </div>
+                            </div>
+                        </div>
+                        <aura:if isTrue="{!v.Personrole.DPM_Owner__c}">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:select required="true" aura:id="idOwnerTitle" label="Title" value="{!v.Personrole.DPM_Owner_Title__c}" messageWhenValueMissing="Enter Owner Title">
+                                            <aura:iteration items="{!v.ownerPositionsList}" var="item">
+                                                <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.Personrole.DPM_Owner_Title__c}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    </div>
+                    </p>
+            </div>
+        <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_brand" onclick="{!c.close}">Cancel</button>
+                <aura:if isTrue="{!!v.blnReadOnly}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.submit}">Submit</button>
+                </aura:if>
+                </footer>
+            
+            
+             </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+    
+    
+    
+    
+    
+    
+    
+    
+</aura:component>

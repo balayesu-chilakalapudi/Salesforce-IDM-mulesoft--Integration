@@ -1,0 +1,30 @@
+<aura:component>
+    <aura:attribute name="type" type="string" description="Type of the Toast"/>
+    <aura:attribute name="message" type="string" description="Message of the Toast"/>
+    <aura:attribute name="title" type="string" description="Title of the Toast"/>
+    <div style="height:4rem" class="toastContainer">
+        <div class="slds-notify_container slds-is-relative">
+            <div class="{!v.type=='success'?'slds-notify slds-notify_toast slds-theme_success':'slds-notify slds-notify_toast slds-theme_error'}" role="status">
+                <span class="slds-assistive-text">{!v.title}</span>
+                <span class="slds-icon_container slds-m-right_small slds-no-flex slds-align-top">
+                    <aura:if isTrue="{!v.type=='success'}">
+                    	<lightning:icon iconName="utility:success" alternativeText="success" title="success" variant="inverse" size="small"/>
+                        <aura:set attribute="else">
+                            <lightning:icon iconName="utility:error" alternativeText="error" title="error" variant="inverse" size="small"/>
+                        </aura:set>
+                    </aura:if>
+                    
+                </span>
+                <div class="slds-notify__content">
+                    <h2 class="slds-text-heading_small ">{!v.message}</h2>
+                </div>
+                <div class="slds-notify__close">
+                    <button class="slds-button slds-button_icon slds-button_icon-inverse" title="close" onclick="{!c.closeToast}">
+                        <lightning:icon iconName="utility:close" alternativeText="close" title="close" variant="inverse" size="small"/>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

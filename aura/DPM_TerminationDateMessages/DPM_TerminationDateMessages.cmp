@@ -1,0 +1,27 @@
+<aura:component> 
+    <aura:attribute name="strModalBody" type="String" default=""/>
+    <aura:attribute name="empParams" type="String" default="" />
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container classSmallModal">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinnerModal"/>
+            <header class="slds-modal__header">               
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{!c.cancel}"
+                                      alternativeText="Close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"
+                                      size="large"/>
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Termination Date Alert</h2>                    
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">    
+                <div class="slds-align_absolute-center">
+                    <span>{!v.strModalBody}</span>
+                </div>                
+            </div>
+            <footer class="slds-modal__footer">  
+                <button class="slds-button slds-button_brand" onclick="{!c.cancel}">Ok</button> 
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:component>
