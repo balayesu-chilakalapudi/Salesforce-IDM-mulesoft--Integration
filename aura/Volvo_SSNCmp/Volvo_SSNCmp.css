@@ -1,0 +1,8 @@
+.THIS .reportButton {
+    border: 1px solid #007bcd;
+     /*color: white !important;*/ 
+    border-radius: 1;
+    /* padding-right: 36px; */
+    line-height: 40px;
+    padding: 0 40px;
+}

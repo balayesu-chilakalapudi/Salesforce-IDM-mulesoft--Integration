@@ -1,0 +1,52 @@
+<aura:component >
+    <aura:attribute name="showSSN" type="Boolean" default="false" description="Used for showing SSN"/>
+    <aura:attribute name="showSSNBtn" type="Boolean" default="true" description="Used for showing SSN"/>
+    <aura:attribute name="SSNBtnLabel" type="String" default="Show SSN" description="Used for showing SSN button label"/>
+    <aura:attribute name="strCountry" type="String" default="" description="Used to store the country"/>
+    <aura:attribute name="SSNValue" type="String" default="" description="Used to store the SSN"/>
+    <aura:attribute name="mode" type="String" default="view" description="Used to store the current form mode view/edit/admin"/>
+   	<aura:attribute name="corporatePermissions" default="{}" type="Map" description="Used to store corporate permissions"/>
+    <aura:attribute name="isRetailerAdmin" type="boolean" default="false" description="Used to determine whether the current logged in User is Retailer Admin"/>
+    <aura:if isTrue="{!(v.strCountry != 'Canada')}"> 
+    <div class="slds-grid slds-wrap">
+        <div class="{!v.mode=='view'?'slds-col slds-size_6-of-12':'slds-col slds-size_8-of-12'}">
+            <div class="slds-form-element">
+                <aura:if isTrue="{!v.mode=='view'}">
+                    <span class="slds-form-element__label">{!v.strCountry == 'Canada'?'SIN':'SSN'}</span>
+                </aura:if>
+                <div class="slds-form-element__control classFormElement">
+                    <div class="slds-form-element__static">
+                        <div class="slds-form-element__control">                    
+                            <aura:if isTrue="{!v.mode=='view'}">
+                                <aura:if isTrue="{!v.SSNValue != null}">
+                                	{!v.showSSN?v.SSNValue:'***********'}
+                                </aura:if>                                
+                                <aura:set attribute="else">
+                                    <aura:if isTrue="{!(v.strCountry == 'Canada')}"> 
+                                        <!--
+                                        <lightning:input aura:id="idSSNCan" type="{!v.showSSN?'text':'password'}" label="SIN" disabled="{!!v.corporatePermissions.editSSN}" placeholder="" pattern="{!$Label.c.DPM_SIN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format" value="{!v.SSNValue}"/>
+                                        -->
+										<aura:set attribute="else"> 
+                                            <aura:if isTrue="{!v.isRetailerAdmin}">
+                                            	<lightning:input aura:id="idSSN" type="{!v.showSSN?'text':'password'}" label="SSN" disabled="{!!v.corporatePermissions.editSSN}" placeholder="" pattern="{!$Label.c.DPM_SSN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format" value="{!v.SSNValue}"/>
+                                            	<aura:set attribute="else">
+                                                <lightning:input aura:id="idSSN" type="{!v.showSSN?'text':'password'}" label="SSN" disabled="{!v.isRetailerAdmin}" placeholder="" pattern="{!$Label.c.DPM_SSN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered an invalid format" value="{!v.SSNValue}"/>
+                                                </aura:set>
+                                            </aura:if>    
+                                        </aura:set>
+                                    </aura:if>
+                                </aura:set>
+                            </aura:if>                         
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="{!v.mode=='view'?'slds-col slds-size_6-of-12 classShowSSNBtn':'slds-col slds-size_4-of-12 classShowSSNBtn'}">
+            <aura:if isTrue="{!v.showSSNBtn &amp;&amp; v.SSNValue != null}">
+            	<button class="slds-button slds-button_outline-brand reportButton" onclick="{!c.showHideSSN}">{!v.SSNBtnLabel}</button>
+            </aura:if>
+        </div>
+    </div>
+    </aura:if>
+</aura:component>
