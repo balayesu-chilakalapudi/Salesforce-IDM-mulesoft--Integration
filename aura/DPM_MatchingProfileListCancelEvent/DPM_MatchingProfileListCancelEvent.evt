@@ -1,0 +1,1 @@
+<aura:event type="COMPONENT" description="This Event lands on the Personnel Management home page when cancel button clicked" />

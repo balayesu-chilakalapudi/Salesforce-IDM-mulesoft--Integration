@@ -1,0 +1,81 @@
+<aura:component>
+    <aura:attribute name="dpmEmployees" type="List" description="List of DPM Employees" />
+    <aura:attribute name="existingEmployees" type="List" description="List of Existing Employees" />
+    <aura:attribute name="mode" type="String" description="Mode of the record" />
+    <aura:attribute name="currentEmployee" type="Map" description="Current logged in Employee" />
+    <aura:attribute name="fromPortal" type="Boolean" default="true"
+        description="Checks if DPM is accessed through the Portal" />
+    <aura:attribute name="sessionSettings" type="Map" default="{}"
+        description="Used to store the Sorting/Filtering information" />
+    <aura:attribute name="tabName" type="String" default="" description="Used to get the tab" />
+    <aura:attribute name="corporatePermissions" type="Map" default="{}"
+        description="Used to store corporate permissions" />
+    <aura:attribute name="blnIsIncentiveProfile" type="Boolean" default="false"
+        description="Used to check for Incentive Profile" access="global" />
+    <aura:attribute name="sortedBy" type="String" default="Name"/>
+ <aura:attribute name="sortedDirection" type="string" default="asc" />
+ <aura:attribute name="RetailerId" type="string" description="Retailer Id used to display on search results tab" />
+ <aura:attribute name="dpmEmployee" type="Map" />
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
+    <aura:method name="downloadEmployeeStatus" action="{!c.handleDownload}"/>
+    <!--<table aura:id="idTableResults"
+        class="slds-table slds-table_bordered slds-table_cell-buffer slds-max-medium-table_stacked">
+        <thead>
+            <tr class="slds-text-title_caps">
+                <aura:iteration items="{!v.sessionSettings.existingEmployeeColumns}" var="column">
+                    <th scope="col slds-is-sortable">
+                        <a class="slds-text-link_reset classHoverArrow classInlineBlock classBottomVerticalAlign"
+                            href="javascript:void(0);" role="button" tabindex="0" data-header="{!column.name}"
+                            onclick="{!c.handleColumnClick}">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                <span class="slds-truncate" title="{!column.label}">{!column.label}</span>
+                                <div
+                                    class="classFixedWidth slds-icon_container slds-icon-utility-arrowdown slds-p-horizontal_x-small">
+                                    <aura:if isTrue="{!v.sessionSettings.sortBy == column.name}">
+                                        <span class="{!v.sessionSettings.sortDirection == 'ASC' ? '' : 'slds-hide'}">
+                                            <lightning:icon iconName="utility:arrowdown" size="small" />
+                                        </span>
+                                        <span class="{!v.sessionSettings.sortDirection == 'DESC' ? '' : 'slds-hide'}">
+                                            <lightning:icon iconName="utility:arrowup" size="small" />
+                                        </span>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </a>
+                    </th>
+                </aura:iteration>
+            </tr>
+        </thead>
+        <tbody>
+            <aura:iteration items="{!v.existingEmployees}" var="existingEmployee" indexVar="index">
+                <tr>
+                    <td>
+                        {!existingEmployee.DPM_Legal_First_Name__c}
+                    </td>
+                    <td>
+                        {!existingEmployee.DPM_Last_Name__c}
+                    </td>
+                    <td>
+                        {!existingEmployee.DPM_Email__c}
+                    </td>
+                    <td>
+                        {!existingEmployee.DPM_Request_Type__c}
+                    </td>
+                    <td>
+                        {!existingEmployee.DPM_Status__c}
+                    </td>
+                </tr>
+            </aura:iteration>
+        </tbody>
+    </table>-->
+    <lightning:datatable keyField="id" data="{!v.existingEmployees}"
+                                     columns="{!v.sessionSettings.existingEmployeeColumns}"
+                                     hideCheckboxColumn="true"
+                                     onsort="{!c.updateSorting}"
+                                     sortedBy="{!v.sortedBy}"
+                                     sortedDirection="{!v.sortedDirection}"
+                                     onrowaction="{!c.viewRecord}"
+                                     />
+                                     <div>{!v.body}</div>
+    
+</aura:component>

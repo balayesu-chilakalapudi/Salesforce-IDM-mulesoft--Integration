@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT" description="To Hold Language Value">
+    <aura:attribute name="languageVal" type="String" default="" />
+    <aura:attribute name="languages" type="String" default="" />
+</aura:event>

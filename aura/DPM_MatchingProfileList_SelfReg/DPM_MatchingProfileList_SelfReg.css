@@ -1,0 +1,10 @@
+.THIS .sbar{
+      overflow:scroll;
+      width:98%;
+      height:98%;
+}
+
+.THIS .slds-modal__container{
+       max-width: 75rem !important;
+       width:75% !important; 
+}

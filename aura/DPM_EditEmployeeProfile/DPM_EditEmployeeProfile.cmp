@@ -1,0 +1,76 @@
+<aura:component controller="DPM_PersonnelMasterController">
+    <aura:attribute name="personRole" type="Map" description="Used to store the Person Role for displaying the User Profile"/>
+    <aura:attribute name="mode" type="String" description="Stores the mode for the edit profile" default="view"/>
+    <aura:attribute name="genderList" type="List" description="Stores the Gender Picklist values" default="[]"/>
+    <aura:attribute name="prefixList" type="List" description="Stores the Prefix Picklist values" default="[]"/>
+    <aura:attribute name="suffixList" type="List" description="Stores the Suffix Picklist values "/>
+    <aura:attribute name="ownerPositionsList" type="List" description="Stores the Owner Positions"/>
+    <aura:attribute name="primaryPositionsList" type="List" description="Stores the Primary Positions for the DPM Employee"/>
+    <aura:attribute name="incentivePositionsList" type="List" default="[]" description="Stores the Incentive Eligible Positions"/>
+    <aura:attribute name="positionsList" type="List" description="Stores the Positions Picklist values for the DPM Employee"/>
+    <aura:attribute name="showNotification" type="Boolean" description="Used to show a notification for different scenarios" default="false"/>
+    <aura:attribute name="strModalHeader" type="String" description="Used to set the notification modal header"/>
+    <aura:attribute name="strModalBody" type="String" description="Used to set the notification modal header"/>
+    <aura:attribute name="strModalType" type="String" description="Used to set the notification modal header"/>
+    <aura:attribute name="isRetailerAdmin" type="boolean" default="true" description="Used to determine whether the current logged in User is Retailer Admin"/>
+    <aura:attribute name="isSearchModal" type="boolean" default="false" description="Used to determine a search modal"/>
+    <aura:attribute name="showMissingSSNMessage" type="boolean" default="true" description="Used to show missing SSN message"/>
+    <aura:attribute name="searchMode" type="String" default="" description="Used to determine the search mode"/>
+    <aura:attribute name="corporatePermissions" type="Map" default="{}" description="Used to store corporate permissions"/>
+    <aura:attribute name="isTerminatedEmployee" type="boolean" default="false" description="Used to store employee termination status"/>
+    <aura:attribute name="isW9Exempt" type="boolean" default="false" description="Used to store employee W9 Exempt status"/>
+    <aura:attribute name="fromPortal" type="boolean" default="false" description="Used to identity portal type" />
+    <aura:registerEvent name="refreshDPMEvent" type="c:DPM_PersonnelMasterRefreshEvt"/>
+    <aura:handler name="dpmNotificationEvt" event="c:DPM_NotificationModalEvent" action="{!c.handleNotificationEvent}"/>
+    <aura:handler name="dpmTerminationDateMessagesEvt" event="c:DPM_TerminationDateMessagesEvent" action="{!c.handleTerminationDateMsgEvent}"/>
+    <aura:handler name="dpmCloseEditEmployeeEvt" event="c:DPM_CloseEditEmployeeEvent" action="{!c.handlerCloseEditEmployee}"/>
+   	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <div class="">
+        <aura:if isTrue="{!!v.showNotification}">         
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">           
+                <div class="{!v.isSearchModal?'slds-modal__container classSearchProfileModal':'slds-modal__container'}">                
+                    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>               
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{!c.close}">
+                            <lightning:icon iconName="utility:close" />
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">
+                            {!v.searchMode!='view'?'Edit Employee Profile':'Employee Profile'}
+                        </h2>  
+                         <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name =='Supplier Employee'}">
+                            <aura:if isTrue="{!v.searchMode=='view' &amp;&amp; v.corporatePermissions.manageSuppliers &amp;&amp; v.corporatePermissions.editSuppliers &amp;&amp;v.personRole.RE_Psn_NonActive_Date__c==null &amp;&amp; v.isSearchModal}">
+                                    <button class="slds-button slds-button_brand slds-float_right slds-m-right_medium" 
+                                            onclick="{!c.editProfile}"                                    
+                                            >Edit</button> 
+                                </aura:if>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!or((v.searchMode=='view' &amp;&amp; v.corporatePermissions.editPermission &amp;&amp;v.personRole.RE_Psn_NonActive_Date__c==null &amp;&amp; v.isSearchModal),(v.searchMode=='view' &amp;&amp; v.corporatePermissions.editPermission &amp;&amp;v.personRole.RE_Psn_NonActive_Date__c!=null &amp;&amp; v.isSearchModal &amp;&amp;v.corporatePermissions.viewW9))}">
+                                    <button class="slds-button slds-button_outline-brand slds-float_right slds-m-right_medium reportButton" 
+                                            onclick="{!c.editProfile}"                                    
+                                            >Edit</button> 
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <c:DPM_EmployeeProfileForm aura:id="idEmployeeForm" personRole="{!v.personRole}" corporatePermissions="{!v.corporatePermissions}" mode="{!v.mode}" isRetailerAdmin="{!v.isRetailerAdmin}" isSearchModal="{!v.isSearchModal}" searchMode="{!v.searchMode}" fromPortal="{!v.fromPortal}" />                               
+                    </div>                
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_outline-brand reportButton" onclick="{!c.close}">Cancel</button> 
+                        <aura:if isTrue="{!v.searchMode!='view'}">
+                            <button class="slds-button slds-button_outline-brand reportButton" onclick="{!c.save}">Save</button> 
+                        </aura:if>
+                    </footer>                
+                </div>            
+            </section>          
+            <div class="slds-backdrop slds-backdrop_open"></div>		
+            <aura:set attribute="else">
+                <c:DPM_NotificationModal strModalHeader="{!v.strModalHeader}" strModalBody="{!v.strModalBody}" strModalType="{!v.strModalType}"/>
+            </aura:set>
+        </aura:if>
+    </div>
+    <div>
+        {!v.body}
+    </div>
+</aura:component>

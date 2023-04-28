@@ -1,0 +1,13 @@
+.THIS.classOuterGrid {
+    width:100%;
+}
+.THIS.classFullWidth{
+    width:100% !important;
+}
+.THIS .slds-icon_small{
+    width: 1.2rem;
+    height: 1.2rem;
+}
+.THIS .classRemove {
+    margin-top : 6%;
+}

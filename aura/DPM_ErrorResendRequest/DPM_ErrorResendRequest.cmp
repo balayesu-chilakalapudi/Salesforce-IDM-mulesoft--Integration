@@ -1,0 +1,36 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickActionWithoutHeader" controller="DPM_PersonnelMasterController">
+    <aura:attribute name="errorMessage" type="String" description="Error Message to show" />
+    <aura:attribute name="successMessage" type="String" description="Success Message to show" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>    
+    <aura:html tag="style">
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }       
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        }
+    </aura:html>
+    <div class="classRelative">
+        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>
+        <div class="modal-header slds-modal__header slds-size_1-of-1">
+            <h4 class="title slds-text-heading--medium" >Resend request</h4>
+        </div>
+        
+        <!-- MODAL BODY / INPUT FORM -->    
+        <div class="slds-modal__content slds-p-around--x-small slds-align_absolute-center slds-size_1-of-1 slds-is-relative" aura:id="modalbody" id="modalbody">
+            <span aura:id="idErrorMsg" class="{!v.errorMessage?'':'slds-hide'}">{!v.errorMessage}</span>
+            <span aura:id="idSuccessMsg" class="{!v.successMessage?'':'slds-hide'}">{!v.successMessage}</span>
+        </div>   <!-- End of Modal Content -->  
+        
+        <!-- MODAL FOOTER -->
+        <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+            <lightning:button label="Send" title="Send" onclick="{!c.handleReSend}"/>
+            <lightning:button variant="brand" label="Close" title="Close" onclick="{!c.handleCancel}"/>
+        </div>
+    </div>
+</aura:component>

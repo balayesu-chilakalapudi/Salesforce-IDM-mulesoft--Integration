@@ -1,0 +1,1 @@
+<aura:event type="COMPONENT" description="This Event Close this modal and go back to the previous record entry screen" />

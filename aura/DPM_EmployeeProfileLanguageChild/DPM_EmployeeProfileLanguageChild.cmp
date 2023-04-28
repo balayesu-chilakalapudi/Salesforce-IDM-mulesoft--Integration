@@ -1,0 +1,49 @@
+<aura:component>
+    <aura:attribute name="personRole" type="Map" description="Used to store the Person Role for displaying the User Profile"/>
+    <aura:attribute name="dpmEmployee" type="Map" description="Stores the DPM Employee record" default="{}"/>
+    <aura:attribute name="languageList" type="List" description="Stores the Language Picklist values" default="EngLish,Spanish,Chinese, Portuguese,French,Arabic,Swedish,German,Italian,Russian,Other"/>
+    <aura:attribute name="dpmProficiency" type="List" description="Stores the DPMProficiency Picklist values " />
+    <aura:attribute name="mapLanguageToProficiency" type="List" description="Map of Language and Proficiency" access="public"/>
+    <aura:attribute name="fromEmployeeProfile" type="Boolean" default="false" description="Used for render Cmp"/>
+    <aura:handler name="change" value="{!v.languageList}" action="{!c.doInit}"/>
+    
+    <div class="slds-box classFullWidth slds-m-top_medium slds-m-bottom_medium">
+        <div class="slds-grid slds-wrap classOuterGrid">            
+            <aura:iteration items="{!v.mapLanguageToProficiency}" var="languageOnProfile" indexVar="index">
+                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                    <lightning:select aura:id="idLanguage" required="true" label="Language" value="{!languageOnProfile.Language}" messageWhenValueMissing="Select Language" onchange="{!c.languageChanged}">
+                        <aura:iteration items="{!v.languageList}" var="item">
+                            <option text="{!item.text}" value="{!item.value}" selected="{!item==languageOnProfile.Language}"></option>
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                    <lightning:input aura:id="idOtherLanguage" type="Text" disabled="{!languageOnProfile.Language != 'Other'}" required="{!languageOnProfile.Language == 'Other'}" label="Other Language" value="{!languageOnProfile.OtherLanguage}" messageWhenValueMissing="Enter Other Language"/>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                    <lightning:select aura:id="idProficiency" required="true" label="Proficiency" value="{!languageOnProfile.Proficiency}" messageWhenValueMissing="Select Proficiency">
+                        <aura:iteration items="{!v.dpmProficiency}" var="item">
+                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==languageOnProfile.Proficiency}"></option>
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                    <aura:if isTrue="{!index+1 == v.mapLanguageToProficiency.length &amp;&amp; index != 0}">
+                        <label class="slds-form-element__label"></label>
+                        <div class="uiInput classRemove">
+                            <div class="slds-form-element__control">
+                                <button data-row-index="{!index}" class="slds-button slds-button_icon" title="Remove" onclick="{!c.removeFromList}">
+                                    <lightning:icon iconName="utility:close" size="small"/>
+                                    <span class="slds-assistive-text">Remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </aura:if>
+                </div>
+            </aura:iteration>
+        </div>
+        <aura:if isTrue="{!v.mapLanguageToProficiency.length lt 3}">
+            <div class="slds-m-left_small"><a onclick="{!c.addNewLanguage}">+ Add Language</a></div>
+        </aura:if>
+    </div>
+</aura:component>

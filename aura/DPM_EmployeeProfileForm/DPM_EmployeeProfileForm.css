@@ -1,0 +1,63 @@
+.THIS .tooltip {
+  position: relative;
+  display: inline-block;
+  
+}
+.THIS .classFullWidth{
+    width:100%;
+}
+
+.THIS .tooltip .tooltiptext {
+  visibility: hidden;
+  width: 400px;
+  background-color: gray;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 5px 5px;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 0%;
+  margin-left: 0px;
+}
+
+.THIS .tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.THIS .tooltip .tooltiptext::after {
+  content: " ";
+  position: absolute;
+  top: 97%; /* At the bottom of the tooltip */
+  left: 0%;
+  margin-left: 0px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: gray transparent transparent transparent;
+}
+.THIS .classSSN {
+    width:100%;
+}
+.THIS .classNoPadding {
+    padding:0px !important;
+}
+.THIS .classSSNEdit .slds-col {
+    padding:0px !important;    
+}
+.THIS .classSSNEdit .slds-form-element {
+    padding-right: 15% !important;
+}
+.THIS .classShowSSNBtn .slds-button{
+    padding: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.THIS .classShowSSNBtn {
+    margin-top: 2%;
+}
+.THIS .classRemovePadding {
+    padding:0rem !important;
+}

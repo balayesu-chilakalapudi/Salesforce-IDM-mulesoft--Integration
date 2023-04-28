@@ -1,0 +1,15 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+	<ltng:require styles="{!$Resource.DPM_personnelManagement + '/dpm-pm/assets/styles/cbvcd-app.css'}" />
+    <ltng:require styles="{!$Resource.DPM_personnelManagement + '/dpm-pm/assets/styles/noheader.css'}" />
+    <div>
+        <div class="dpmdhome__hero">
+           <div class="slds-p-horizontal_medium slds-p-vertical_xx-large">
+                <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
+                    <p class="hero__welcome slds-text-heading_large slds-text-color_inverse">
+                        Welcome to <br/>Digital Personnel Management<br/>                    	
+                    </p>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

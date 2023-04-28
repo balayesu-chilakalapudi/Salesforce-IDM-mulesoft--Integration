@@ -1,0 +1,33 @@
+<aura:component >
+    <aura:registerEvent name="existingEmpCheckEvent" type="c:DPM_ExistingEmpCheckEvent"/>
+   	<div class="slds-m-around_xx-large">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{!c.closeModal}"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"
+                                          size="large"/>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Existing Employee  Check</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">                  
+                     <p>Is this person currently employed at another Volvo retailer, or a recent Volvo training school graduate, or have they previously worked for Volvo?</p>
+                </div>
+                
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="brand" 
+                                      label="No"
+                                      title="No"
+                                      onclick="{!c.handleNewEmployee}"/>
+                    <lightning:button variant="brand" 
+                                      label="Yes"
+                                      title="Yes"
+                                      onclick="{!c.handleReactivateEmployee}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </div>
+</aura:component>

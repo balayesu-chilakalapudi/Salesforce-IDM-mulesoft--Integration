@@ -1,0 +1,109 @@
+<aura:component controller="DPM_PersonnelMasterController">
+    <aura:attribute name="showPopup" type="boolean" description="Displays/Closes the popup when delete button clicked" default="true" />
+    <aura:attribute name="fromPortal" type="Boolean" default="true" description="Checks if DPM is accessed through the Portal"/>
+    <aura:attribute name="profileList" type="List" default="[]" description="Used for holding list of matched profiles and their positions" />
+    <aura:attribute name="blnConfirmCancel" type="boolean" description="Checks before cancelling window" default="false"/>    
+    <aura:attribute name="strModalHeader" type="String" description="Used to set the notification modal header"/>
+    <aura:attribute name="strModalBody" type="String" description="Used to set the notification modal header"/>
+    <aura:attribute name="strModalType" type="String" description="Used to set the notification modal header"/>
+    <aura:attribute name="selectedProfile" type="String" description="Used to store the selected Contact Id" default=""/>
+    <aura:attribute name="dpmEmployee" type="Map" description="Used to display DPMEmployee Information on popup screen" />
+    <aura:attribute name="account" type="Object" description="The dealership of the employee" />
+    <aura:registerEvent name="DPM_MatchingProfileListBackEvent" type="c:DPM_MatchingProfileListBackEvent" />  
+    <aura:registerEvent name="DPM_MatchingProfileListCancelEvent" type="c:DPM_MatchingProfileListCancelEvent" />  
+    <aura:handler name="dpmNotificationEvt" event="c:DPM_NotificationModalEvent" action="{!c.handleNotificationEvent}"/>
+    <aura:registerEvent name="nextModalEvent" type="c:DPM_ReactivationModalEvent"/>
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="{!v.blnShowDuplicatePopup?'slds-hide':'slds-modal slds-fade-in-open'}">
+        <aura:if isTrue="{!v.showPopup}">
+            <div class="slds-modal__container">
+                <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{!c.cancel}"
+                                          alternativeText="Close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"
+                                          size="large"/>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                        Matching Profile List
+                    </h2>                
+                </header>
+                
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <div class="sbar">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-max-medium-table_stacked">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <td class="" scope="col">Select</td>
+                                <td class="" scope="col">First Name</td>
+                                <td class="" scope="col">Middle Name</td>
+                                <td class="" scope="col">Last Name</td>
+                                <td class="" scope="col">Suffix</td>
+                                <td class="" scope="col">Email</td>
+                                <td class="" scope="col">Phone</td>
+                                <td class="" scope="col">Store (ID-Name)</td>
+                                <td class="" scope="col">Hire Year</td>
+                                <td class="" scope="col">Termination Year</td>
+                                <td class="" scope="col">Latest Primary Position</td>
+                                <td class="" scope="col">Active/Terminated</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.profileList}" var="profile" indexVar="indexProfile">
+                                <tr>
+                                    <td><input type="radio" name="profile" id="{!profile.Id}" onclick="{!c.rowSelected}"/></td>
+                                    <td>{!profile.FirstName}</td>
+                                    <td>{!profile.MiddleName}</td>
+                                    <td>{!profile.LastName}</td>
+                                    <td>{!profile.Suffix}</td> 
+                                    <td>{!profile.Email}</td> 
+                                    <td>{!profile.Phone}</td> 
+                                    <aura:iteration items="{!profile.Person_Roles__r}" var="personRole" indexVar="indexPersonRole">
+                                        <aura:if isTrue="{!indexPersonRole == 0}">
+                                            <td class="slds-cell-wrap">{!personRole.RE_Account__r.Retailer__c} - {!personRole.RE_Account__r.Name}</td>
+                                            <td>{!personRole.hireYear}</td>
+                                            <td>{!personRole.terminationYear}</td>
+                                            <td>{!personRole.RE_Employee_Position__c}</td>
+                                            <td>{!personRole.RE_Psn_Active__c?'Active':'Terminated'}</td>
+                                        </aura:if>                                        
+                                    </aura:iteration>
+                                </tr>
+                                <aura:iteration items="{!profile.Person_Roles__r}" var="personRole" indexVar="indexPersonRole">
+                                    <aura:if isTrue="{!indexPersonRole != 0}">
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>        
+                                            <td></td>
+                                            <td></td> 
+                                            <td class="slds-cell-wrap">{!personRole.RE_Account__r.Retailer__c} - {!personRole.RE_Account__r.Name}</td>
+                                            <td>{!personRole.hireYear}</td>
+                                            <td>{!personRole.terminationYear}</td>
+                                            <td>{!personRole.RE_Employee_Position__c}</td>
+                                            <td>{!personRole.RE_Psn_Active__c?'Active':'Terminated'}</td>                                            
+                                        </tr>
+                                    </aura:if>
+                                </aura:iteration>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button id="nextBtn" class="slds-button slds-button_brand" onclick="{!c.next}" disabled="{!v.selectedProfile == ''}">Next</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.back}">Back</button>                   
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancel}">Cancel</button>                   
+                </footer>
+            </div>
+        </aura:if>
+    </section>                                                                                       
+    <div class="slds-backdrop slds-backdrop_open"></div> 
+    <div class="slds-m-around--xx-large">
+        <aura:if isTrue="{!v.blnConfirmCancel}">
+            <c:DPM_NotificationModal strModalHeader="{!v.strModalHeader}" strModalBody="{!v.strModalBody}" strModalType="{!v.strModalType}"/>
+        </aura:if>
+    </div>
+     <div>{!v.body}</div>
+</aura:component>

@@ -1,0 +1,1427 @@
+<aura:component controller="DPM_PersonnelMasterController"> 
+    <aura:attribute name="w9MaxDate" type="String" description="Stores the Max Date"/> 
+    <aura:attribute name="IsSupplier" type="Boolean" default="false" description="Checks if its to create supplier Employee"/> 
+    <aura:attribute name="mode" type="String" description="Used to describe the mode - view/edit/admin" default="view"/> 
+    <aura:attribute name="personRole" type="Map" description="Used to store the Person Role for displaying the User Profile"/> 
+    <aura:attribute name="genderList" type="List" description="Stores the Gender Picklist values" default="[]"/> 
+    <aura:attribute name="prefixList" type="List" description="Stores the Prefix Picklist values" default="[]"/> 
+    <aura:attribute name="w9flagList" type="List" description="Stores the W9-Flag Picklist values" default="[]"/> 
+    <aura:attribute name="suffixList" type="List" description="Stores the Suffix Picklist values " /> 
+    <aura:attribute name="incentivePositionsList" type="List" description="Stores the Incentive Eligible Positions"/> 
+    <aura:attribute name="ownerPositionsList" type="List" description="Stores the Owner Positions"/> 
+    <aura:attribute name="primaryPositionsList" type="List" description="Stores the Primary Positions for the DPM Employee"/> 
+    <aura:attribute name="incentiveEligiblePositionsList" type="List" description="Stores the Incentive Eligible Positions for the DPM Employee"/> 
+    <aura:attribute name="positionsList" type="List" description="Stores the Positions Picklist values for the DPM Employee"/> 
+    <aura:attribute name="countryList" type="List" description="Stores the Country Picklist values" default="[]"/> 
+    <aura:attribute name="stateList" type="List" description="Stores the State Picklist values" default="[]"/> 
+    <aura:attribute name="stateListWork" type="List" description="Stores the State Picklist values for Work Address" default="[]"/> 
+    <aura:attribute name="mapCountryWithStates" type="Map" description="Stores the map of country with states"/> 
+    <aura:attribute name="showSSN" type="Boolean" default="false" description="Used for showing SSN"/> 
+    <aura:attribute name="SSNBtnLabel" type="String" default="" description="Used for showing SSN button label"/> 
+    <aura:attribute name="isRetailerAdmin" type="boolean" default="false" description="Used to determine whether the current logged in User is Retailer Admin"/> 
+    <aura:attribute name="IsShowSSNSupplier" type="boolean" default="true" description="Used to determine whether the current logged in User is Supplier Emp"/> 
+    <aura:attribute name="positionEditable" type="boolean" default="false" description="Used to determine whether the positions can be edited"/> 
+    <aura:attribute name="homeAddressEditable" type="boolean" default="false" description="Used to determine whether the home address can be edited"/> 
+    <aura:attribute name="isSearchModal" type="boolean" default="false" description="Used to determine a search modal"/> 
+    <aura:attribute name="searchMode" type="String" default="" description="Used to determine the search mode"/> 
+    <aura:attribute name="corporatePermissions" default="{}" type="Map" description="Used to store corporate permissions"/> 
+    <aura:attribute name="DPMProficiency" type="List" description="Stores the DPMProficiency1 Picklist values " /> 
+    <aura:attribute name="languageList" type="List" description="Stores the Language Picklist values" default=""/> 
+    <aura:attribute name="raceList" type="List" description="Stores the Race Picklist values" default=""/> 
+    <aura:attribute name="otherRace" type="String" description="Stores the other Race value" default=""/> 
+    <aura:attribute name="otherEthnicity" type="String" description="Stores the other Ethnicity value" default=""/> 
+    <aura:attribute name="ethnicityList" type="List" description="Stores the Ethnicity Picklist values" default=""/> 
+    <aura:attribute name="diversityData" type="Object" description="The map of all the diversity data by country" /> 
+    <aura:attribute name="blnEditDMSId" type="boolean" default="false" description="Used to give edit access to DMS Id" /> 
+    <aura:attribute name="account" type="Object" description="Store the current dealer store account" /> 
+    <aura:attribute name="fromPortal" type="boolean" default="false" description="Used to identify portal type" /> 
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> 
+    <aura:handler name="change" value="{!v.mode}" action="{!c.modeChangeHandler}"/> 
+    <aura:handler name="change" value="{!v.personRole.RE_Contact__r.MailingCountry}" action="{!c.countryChangeHandler}"/> 
+    <aura:handler name="dpmNotificationEvt" event="c:DPM_NotificationModalEvent" action="{!c.handleNotificationEvent}"/> 
+    <aura:handler name="languageEvent" event="c:DPM_LanguageEvent" action="{!c.handleLanguageVal}"/> 
+    <aura:registerEvent name="dpmTerminationDateMessagesEvt" type="c:DPM_TerminationDateMessagesEvent" /> 
+    <aura:registerEvent name="dpmCloseEditEmployeeEvt" type="c:DPM_CloseEditEmployeeEvent"               />
+    
+    <div class="{!v.mode=='view'?'slds-box':''}">   
+        {!v.body} 
+        <lightning:spinner aura:id="idSpinner" alternativeText="Loading" size="medium" variant="brand" class="{!v.mode=='view'?'slds-hide':''}"></lightning:spinner> 
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="Main Information"> 
+            <lightning:accordionSection name="Main Information" label="Main Information"> 
+                <div class="{!v.mode=='view'?'slds-grid slds-wrap slds-m-left_medium':'slds-grid slds-wrap slds-m-left_small'}">                 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Prefix</span> 
+                            </aura:if>                     
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.Salutation} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:select disabled ="{!v.corporatePermissions.viewW9}" aura:id="idPrefix" label="Prefix" value="{!v.personRole.RE_Contact__r.Salutation}" required="true" messageWhenValueMissing="Select Prefix"> 
+                                                <aura:iteration items="{!v.prefixList}" var="item"> 
+                                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.RE_Contact__r.Salutation}"></option> 
+                                                </aura:iteration> 
+                                            </lightning:select> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Legal First Name</span> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <form class="slds-form-element__static" autocomplete="off"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.FirstName} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input aura:id="idFirstName" required="true" label="Legal First Name" type="text" value="{!v.personRole.RE_Contact__r.FirstName}" maxlength="255" 
+                                                             messageWhenValueMissing="Enter Legal First Name" 
+                                                             disabled ="{!v.corporatePermissions.viewW9}"/> 
+                                        </aura:set> 
+                                    </aura:if>                             
+                                </form> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Last Name</span> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <form class="slds-form-element__static" autocomplete="off"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.LastName} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input aura:id="idLastName" required="true" label="Last Name" type="text" value="{!v.personRole.RE_Contact__r.LastName}" maxlength="255" 
+                                                             disabled ="{!v.corporatePermissions.viewW9}" messageWhenValueMissing="Enter Legal Last Name" 
+                                                             /> 
+                                        </aura:set> 
+                                    </aura:if>  
+                                </form> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Middle Name</span> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <form class="slds-form-element__static" autocomplete="off"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.MiddleName} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input disabled ="{!v.corporatePermissions.viewW9}" type="text" label="Middle Name" value="{!v.personRole.RE_Contact__r.MiddleName}" maxlength="255"                                                          
+                                                             /> 
+                                        </aura:set> 
+                                    </aura:if>  
+                                </form> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Suffix</span> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.Suffix} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:select disabled ="{!v.corporatePermissions.viewW9}" aura:id="idSuffix" label="Suffix" value="{!v.personRole.RE_Contact__r.Suffix}" messageWhenValueMissing="Select Prefix"> 
+                                                <aura:iteration items="{!v.suffixList}" var="item"> 
+                                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.RE_Contact__r.Suffix}"></option> 
+                                                </aura:iteration> 
+                                            </lightning:select> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Preferred First Name</span> 
+                            <div class="slds-form-element__control"> 
+                                <form class="slds-form-element__static" autocomplete="off"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.DPM_Preferred_First_Name__c} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input disabled ="{!v.corporatePermissions.viewW9}" variant="label-hidden" type="text" value="{!v.personRole.RE_Contact__r.DPM_Preferred_First_Name__c}" maxlength="255"               
+                                                             /> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                </form> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <!-- 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':''}"/> 
+                    --> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Gender</span> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.RE_Contact__r.DPM_Gender__c}                                          
+                                        <aura:set attribute="else"> 
+                                            <lightning:select disabled ="{!v.corporatePermissions.viewW9}" aura:id="idGender" required="true" label="Gender" value="{!v.personRole.RE_Contact__r.DPM_Gender__c}" messageWhenValueMissing="Select Gender"> 
+                                                <aura:iteration items="{!v.genderList}" var="item"> 
+                                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.RE_Contact__r.DPM_Gender__c}"></option> 
+                                                </aura:iteration> 
+                                            </lightning:select> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <!--<div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':''}"> 
+                        </div>--> 
+                    <!--<aura:if isTrue="{!v.personRole.RE_Contact__r.Account_Country__c == 'MEX'}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"></div> 
+                    </aura:if>--> 
+                    <aura:if isTrue="{!v.personRole.RE_Contact__r.DPM_Gender__c=='Non-binary'}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':''}"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                Other Gender<br /> 
+                                {!v.personRole.RE_Contact__r.DPM_Other_Gender__c} 
+                                <aura:set attribute="else"> 
+                                    <div style="margin-left:5%;margin-top:5%"> 
+                                        <lightning:input aura:id="otherbox2"                                                           
+                                                         type="text" label="Other Gender" value="{!v.personRole.RE_Contact__r.DPM_Other_Gender__c}" onblur="{!c.capitalizeInput}" maxlength="255" messageWhenValueMissing="Enter Other Gender"/> 
+                                    </div> 
+                                </aura:set> 
+                            </aura:if>        
+                        </div> 
+                        <!--<div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':''}"> 
+                        </div>-->
+                    </aura:if> 
+                    <aura:if isTrue="{!(v.personRole.RE_Contact__r.MailingCountry != 'Mexico' &amp;&amp; v.IsShowSSNSupplier)}"> 
+                        <aura:if isTrue="{!!v.isSearchModal || v.corporatePermissions.viewSSN || v.corporatePermissions.viewSSNLastFour}">
+                            <div class="{!v.mode=='view'?'slds-size_1-of-1 slds-large-size_12-of-12':'slds-col slds-size_1-of-1 slds-large-size_8-of-12'}"> 
+                                <div class="slds-grid"> 
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.MailingCountry != 'Canada'}"> 
+                                        <div class="{!v.mode=='view'?'slds-size_1-of-1 slds-large-size_3-of-12':'slds-size_1-of-1 slds-large-size_12-of-12'}"> 
+                                            <aura:if isTrue="{!v.isSearchModal}"> 
+                                                <div class="{!v.mode=='view'?'':'classSSNEdit'}"> 
+                                                    <aura:if isTrue="{!v.mode=='view'}">                                     
+                                                        <aura:if isTrue="{!v.corporatePermissions.viewSSN}"> 
+                                                            <c:Volvo_SSNCmp aura:id="idSSNcmp" mode="view" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSN__c}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}" corporatePermissions="{!v.corporatePermissions}"/> 
+                                                            <aura:set attribute="else"> 
+                                                                <c:Volvo_SSNCmp aura:id="idSSNcmp" mode="view" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSNLastFour}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}" corporatePermissions="{!v.corporatePermissions}" /> 
+                                                            </aura:set> 
+                                                        </aura:if> 
+                                                        <aura:set attribute="else"> 
+                                                            <c:Volvo_SSNCmp aura:id="idSSNcmpEdit" mode="edit" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSN__c}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}" corporatePermissions="{!v.corporatePermissions}" /> 
+                                                        </aura:set> 
+                                                    </aura:if> 
+                                                </div> 
+                                                <aura:set attribute="else"> 
+                                                    <!--<div class="{!v.mode=='view'?'classSSN':'classSSNEdit'}"> -->
+                                                        <aura:if isTrue="{!v.isRetailerAdmin}"> 
+                                                            <c:Volvo_SSNCmp aura:id="idSSNcmp" mode="{!v.mode}" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSNLastFour}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}" corporatePermissions="{!v.corporatePermissions}" isRetailerAdmin="{!v.isRetailerAdmin}"  /> 
+                                                            <aura:set attribute="else"> 
+                                                                <aura:if isTrue="{!v.personRole.RE_Contact__r.DPM_Gender__c=='Non-binary'}"> 
+                                                                    <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12"> 
+                                                                		<c:Volvo_SSNCmp aura:id="idSSNcmp" mode="{!v.mode}" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSN__c}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}" corporatePermissions="{!v.corporatePermissions}" isRetailerAdmin="{!v.isRetailerAdmin}" />
+                                                                    </div>
+                                                                    <aura:set attribute="else"> 
+                                                                        <c:Volvo_SSNCmp aura:id="idSSNcmp" mode="{!v.mode}" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSN__c}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}" corporatePermissions="{!v.corporatePermissions}" isRetailerAdmin="{!v.isRetailerAdmin}"/>
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set> 
+                                                        </aura:if> 
+                                                        <!--<c:Volvo_SSNCmp mode="{!v.isRetailerAdmin?'view':v.mode}" SSNValue="{!v.personRole.RE_Contact__r.DPM_SSN__c}" showSSN="{!v.showSSN}" showSSNBtn="{!v.personRole.RE_Contact__r.DPM_SSN__c!=''}" SSNBtnLabel="{!v.SSNBtnLabel}" strCountry="{!v.personRole.RE_Contact__r.MailingCountry}"/>--> 
+                                                    <!--</div>--> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                        </div> 
+                                    </aura:if> 
+                                    
+                                    
+                                </div>
+                            </div> 
+                        </aura:if> 
+                        <!--<aura:if isTrue="{!v.mode=='view'}">-->  
+                         
+                    </aura:if> 
+                    <aura:if isTrue="{!OR(v.personRole.RE_Contact__r.RecordType.Name == 'Supplier Employee',v.personRole.RE_Contact__r.Account_Country__c == 'MEX',v.personRole.RE_Contact__r.DPM_Gender__c=='Non-binary')}"> 
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                            <div class="slds-form-element">                            
+                                <span class="slds-form-element__label">VPID</span>                                             
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">                                   
+                                        {!v.personRole.RE_Contact__r.PsnId__c}  
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </div> 
+                        <aura:set attribute="else"> 
+                            <!--<aura:if isTrue="{!v.personRole.RE_Contact__r.DPM_Gender__c=='Non-binary'}"> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12"> 
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label">VPID</span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">                                   
+                                                {!v.personRole.RE_Contact__r.PsnId__c}  
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div> 
+                                <aura:set attribute="else">-->
+                                    <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                        <div class="slds-form-element">                            
+                                            <span class="slds-form-element__label">VPID</span>                                             
+                                            <div class="slds-form-element__control classFormElement"> 
+                                                <div class="slds-form-element__static">                                   
+                                                    {!v.personRole.RE_Contact__r.PsnId__c}  
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                <!--</aura:set>
+                            </aura:if>-->
+                            
+                        </aura:set>
+                    </aura:if>
+                    <!--</aura:if>--> 
+                    <aura:if isTrue="{!v.mode=='view'}">   
+                        <aura:if isTrue="{!!v.fromPortal}"> 
+                            <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.personRole.RE_Contact__r.Account_Country__c != 'MEX'}"> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">                                   
+                                                {!v.personRole.DPM_DMS_Id__c}  
+                                            </div> 
+                                        </div> 
+                                    </div>  
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label"></span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">  
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label"></span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">  
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div>
+                            </aura:if>  
+                            <aura:set attribute="else"> 
+                                <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.account.Country__r.Name != 'MEX'}">
+                                    <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                        <div class="slds-form-element">                            
+                                            <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                            <div class="slds-form-element__control classFormElement"> 
+                                                <div class="slds-form-element__static">                                   
+                                                    {!v.personRole.DPM_DMS_Id__c}  
+                                                </div> 
+                                            </div> 
+                                        </div>  
+                                    </div>
+                                </aura:if> 
+                            </aura:set> 
+                        </aura:if> 
+                        <aura:set attribute="else"> 
+                            <aura:if isTrue="{!!v.fromPortal}">
+                                <aura:if isTrue="{!v.mode=='view'}">
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.personRole.RE_Contact__r.Account_Country__c != 'MEX'}"> 
+                                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                            <div class="slds-form-element">                            
+                                                <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                                <div class="slds-form-element__control classFormElement"> 
+                                                    <div class="slds-form-element__static">                                   
+                                                        {!v.personRole.DPM_DMS_Id__c}  
+                                                    </div> 
+                                                </div> 
+                                            </div>  
+                                        </div>
+                                        
+                                    </aura:if>
+                                    <aura:set attribute="else"> 
+                                        <aura:if isTrue="{!AND(v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee',v.personRole.RE_Contact__r.Account_Country__c != 'MEX')}">
+                                            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                                <div class="slds-form-element">                            
+                                                    <span class="slds-form-element__label">DMS Employee#</span>                                            
+                                                    <div class="slds-form-element__control classFormElement"> 
+                                                        <div class="slds-form-element__static">                                   
+                                                            <lightning:input aura:id="idDMSEmployee" variant="label-hidden" label="" type="text" value="{!v.personRole.DPM_DMS_Id__c}" maxlength="12" 
+                                                                             messageWhenValueMissing="Enter DMS Id" 
+                                                                             pattern="[a-zA-Z0-9]*" 
+                                                                             messageWhenPatternMismatch="The DMS Employee# entered is not valid.   Only letters and numbers are accepted in this field"  
+                                                                             disabled="{!!(v.corporatePermissions.editDMSId || v.isRetailerAdmin)}"                                                                 
+                                                                             />   
+                                                        </div> 
+                                                    </div> 
+                                                </div>  
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                                <div class="slds-form-element">                            
+                                                    <span class="slds-form-element__label"></span>                                             
+                                                    <div class="slds-form-element__control classFormElement"> 
+                                                        <div class="slds-form-element__static">                                   
+                                                            
+                                                        </div> 
+                                                    </div> 
+                                                </div>  
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                                <div class="slds-form-element">                            
+                                                    <span class="slds-form-element__label"></span>                                             
+                                                    <div class="slds-form-element__control classFormElement"> 
+                                                        <div class="slds-form-element__static">                                   
+                                                            
+                                                        </div> 
+                                                    </div> 
+                                                </div>  
+                                            </div>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.account.Country__r.Name != 'MEX'}">
+                                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                                            <div class="slds-form-element">                            
+                                                <span class="slds-form-element__label">DMS Employee#1</span>                                            
+                                                <div class="slds-form-element__control classFormElement"> 
+                                                    <div class="slds-form-element__static"> 
+                                                        <aura:if isTrue="{!v.isRetailerAdmin}">
+                                                            <lightning:input aura:id="idDMSEmployee" variant="label-hidden" label="" type="text" value="{!v.personRole.DPM_DMS_Id__c}" maxlength="12" 
+                                                                             messageWhenValueMissing="Enter DMS Id" 
+                                                                             pattern="[a-zA-Z0-9]*" 
+                                                                             messageWhenPatternMismatch="The DMS Employee# entered is not valid.   Only letters and numbers are accepted in this field"  
+                                                                             disabled="{!!OR(v.corporatePermissions.editDMSId,v.isRetailerAdmin)}"                                                                 
+                                                                             />
+                                                            <aura:set attribute="else">
+                                                                <lightning:input aura:id="idDMSEmployee" variant="label-hidden" label="" type="text" value="{!v.personRole.DPM_DMS_Id__c}" maxlength="12" 
+                                                                                 messageWhenValueMissing="Enter DMS Id" 
+                                                                                 pattern="[a-zA-Z0-9]*" 
+                                                                                 messageWhenPatternMismatch="The DMS Employee# entered is not valid.   Only letters and numbers are accepted in this field"  
+                                                                                 disabled="{!!OR(v.corporatePermissions.editDMSId,v.personRole.RE_IsAdmin__c)}"                                                                 
+                                                                                 />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </div> 
+                                                </div> 
+                                            </div>  
+                                        </div> 
+                                    </aura:if>
+                                </aura:set>
+                            </aura:if>
+                        </aura:set> 
+                    </aura:if> 
+                    <!-- Diversity Data --> 
+                    <aura:if isTrue="{!v.personRole.RE_Contact__r.MailingCountry != 'Mexico'}"><!-- Updated by Gaurav For US Mex Div Data --> 
+                        <aura:if isTrue="{!(!v.isRetailerAdmin &amp;&amp; !v.isSearchModal) || (v.isSearchModal &amp;&amp; v.corporatePermissions.viewDiversityData)}"> 
+                            <c:DPM_DiversityData aura:id="idDiversityData" personRole="{!v.personRole}" fromEmployeeProfile = "true" raceList="{!v.raceList}" otherRace="{!v.otherRace}" ethnicityList="{!v.ethnicityList}" otherEthnicity="{!v.otherEthnicity}" blnShowMessage="{!!v.isSearchModal}" blnEditable="{!(v.mode == 'edit' &amp;&amp; !v.isSearchModal) || (v.mode == 'edit' &amp;&amp; v.isSearchModal &amp;&amp; v.corporatePermissions.editDiversityData)}" country="{!v.personRole.RE_Contact__r.MailingCountry}" formType="fourColumn"/>               
+                        </aura:if> 
+                        <div class="slds-col slds-size_1-of-1"> 
+                        </div> 
+                        <!-- Added By Gaurav for Diversity Data: Language --> 
+                        <aura:if isTrue="{!v.isSearchModal}"> 
+                            <aura:if isTrue="{!v.mode=='edit' &amp;&amp; v.corporatePermissions.editLanguage}"> 
+                                <c:DPM_EmployeeProfileLanguageChild aura:id="idLanguageCmp" fromEmployeeProfile = "true" personRole="{!v.personRole}" languageList="{!v.languageList}" dpmProficiency="{!v.DPMProficiency}"/> 
+                                <aura:set attribute="else"> 
+                                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                        <div class="slds-form-element"> 
+                                            <span class="slds-form-element__label">Language 1</span> 
+                                            <div class="slds-form-element__control"> 
+                                                <form class="slds-form-element__static" autocomplete="off"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Language_1__c} 
+                                                </form> 
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                        <div class="slds-form-element"> 
+                                            <span class="slds-form-element__label">Proficiency 1</span> 
+                                            <div class="slds-form-element__control classFormElement"> 
+                                                <div class="slds-form-element__static"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Proficiency_1__c} 
+                                                    
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.DPM_Language_2__c}"> 
+                                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Language 2</span> 
+                                                <div class="slds-form-element__control"> 
+                                                    <form class="slds-form-element__static" autocomplete="off"> 
+                                                        {!v.personRole.RE_Contact__r.DPM_Language_2__c} 
+                                                    </form> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Proficiency 2</span> 
+                                                <div class="slds-form-element__control classFormElement"> 
+                                                    <div class="slds-form-element__static"> 
+                                                        {!v.personRole.RE_Contact__r.DPM_Proficiency_2__c} 
+                                                    </div> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                    </aura:if> 
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.DPM_Language_3__c}"> 
+                                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Language 3</span> 
+                                                <div class="slds-form-element__control"> 
+                                                    <form class="slds-form-element__static" autocomplete="off"> 
+                                                        {!v.personRole.RE_Contact__r.DPM_Language_3__c} 
+                                                    </form> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Proficiency 3</span> 
+                                                <div class="slds-form-element__control classFormElement"> 
+                                                    <div class="slds-form-element__static"> 
+                                                        {!v.personRole.RE_Contact__r.DPM_Proficiency_3__c} 
+                                                    </div> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                    </aura:if> 
+                                </aura:set> 
+                            </aura:if> 
+                            <aura:set attribute="else"> 
+                                <aura:if isTrue="{!v.mode=='edit'}"> 
+                                    <c:DPM_EmployeeProfileLanguageChild aura:id="idLanguageCmp" fromEmployeeProfile = "true" personRole="{!v.personRole}" languageList="{!v.languageList}" dpmProficiency="{!v.DPMProficiency}"/> 
+                                </aura:if> 
+                                
+                                <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                    <div class="slds-form-element"> 
+                                        <aura:if isTrue="{!v.mode=='view' || v.mode=='admin'}"> 
+                                            <span class="slds-form-element__label">Language 1</span> 
+                                            <div class="slds-form-element__control"> 
+                                                <form class="slds-form-element__static" autocomplete="off"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Language_1__c} 
+                                                </form> 
+                                            </div> 
+                                        </aura:if> 
+                                    </div> 
+                                </div>                     
+                                <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                    <div class="slds-form-element"> 
+                                        <aura:if isTrue="{!v.mode=='view' || v.mode=='admin'}"> 
+                                            <span class="slds-form-element__label">Proficiency 1</span> 
+                                            <div class="slds-form-element__control classFormElement"> 
+                                                <div class="slds-form-element__static"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Proficiency_1__c} 
+                                                </div> 
+                                            </div> 
+                                        </aura:if> 
+                                    </div> 
+                                </div>                     
+                                <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                    <div class="slds-form-element"> 
+                                        <aura:if isTrue="{!(v.mode=='view' || v.mode=='admin') &amp;&amp; (v.personRole.RE_Contact__r.DPM_Language_2__c)}"> 
+                                            <span class="slds-form-element__label">Language 2</span> 
+                                            <div class="slds-form-element__control"> 
+                                                <form class="slds-form-element__static" autocomplete="off">
+                                                    {!v.personRole.RE_Contact__r.DPM_Language_2__c} 
+                                                </form> 
+                                            </div> 
+                                        </aura:if> 
+                                    </div> 
+                                </div> 
+                                <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                    <div class="slds-form-element"> 
+                                        <aura:if isTrue="{!(v.mode=='view' || v.mode=='admin') &amp;&amp; (v.personRole.RE_Contact__r.DPM_Proficiency_2__c)}"> 
+                                            <span class="slds-form-element__label">Proficiency 2</span> 
+                                            <div class="slds-form-element__control classFormElement"> 
+                                                <div class="slds-form-element__static"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Proficiency_2__c} 
+                                                </div> 
+                                            </div> 
+                                        </aura:if> 
+                                    </div> 
+                                </div> 
+                                <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                    <div class="slds-form-element"> 
+                                        <aura:if isTrue="{!(v.mode=='view' || v.mode=='admin') &amp;&amp; (v.personRole.RE_Contact__r.DPM_Language_3__c)}"> 
+                                            <span class="slds-form-element__label">Language 3</span>                                         
+                                            <div class="slds-form-element__control"> 
+                                                <form class="slds-form-element__static" autocomplete="off"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Language_3__c} 
+                                                </form> 
+                                            </div> 
+                                        </aura:if> 
+                                    </div> 
+                                </div> 
+                                <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                    <div class="slds-form-element"> 
+                                        <aura:if isTrue="{!(v.mode=='view' || v.mode=='admin') &amp;&amp; (v.personRole.RE_Contact__r.DPM_Proficiency_3__c)}"> 
+                                            <span class="slds-form-element__label">Proficiency 3</span> 
+                                            <div class="slds-form-element__control classFormElement"> 
+                                                <div class="slds-form-element__static"> 
+                                                    {!v.personRole.RE_Contact__r.DPM_Proficiency_3__c} 
+                                                </div> 
+                                            </div> 
+                                        </aura:if> 
+                                    </div> 
+                                </div> 
+                            </aura:set> 
+                        </aura:if>    
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_12-of-12':'slds-col slds-size_1-of-1 slds-large-size_12-of-12'}"> 
+                            <aura:if isTrue="{!v.personRole.RE_Contact__r.MailingCountry=='United States'}"> 
+                                <div class="slds-form-element"> 
+                                    <span class="slds-form-element__label">US Military or National Guard Veteran</span> 
+                                    <div class="slds-form-element__control classFormElement"> 
+                                        <aura:if isTrue="{!v.isSearchModal}"> 
+                                            <aura:if isTrue="{!v.mode=='edit'}"> 
+                                                <lightning:input aura:id="idUsMilitary" disabled="{!!v.corporatePermissions.editLanguage}" type="checkbox" checked="{!v.personRole.RE_Contact__r.DPM_US_Military__c}"/> 
+                                                <aura:set attribute="else"> 
+                                                    <lightning:input aura:id="idUsMilitary" disabled="{!v.corporatePermissions.viewLanguage}" type="checkbox" checked="{!v.personRole.RE_Contact__r.DPM_US_Military__c}"/> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idUsMilitary" disabled="{!or(v.mode=='admin', v.mode=='view')}" type="checkbox" checked="{!v.personRole.RE_Contact__r.DPM_US_Military__c}"/> 
+                                            </aura:set> 
+                                        </aura:if>                                 
+                                    </div> 
+                                </div> 
+                            </aura:if> 
+                        </div> 
+                        <!-- <aura:set attribute="else">  
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label">VPID1</span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">                                   
+                                                {!v.personRole.RE_Contact__r.PsnId__c}  
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <aura:if isTrue="{!!v.fromPortal}"> 
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.personRole.RE_Contact__r.Account_Country__c != 'MEX'}"> 
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">                                   
+                                                {!v.personRole.DPM_DMS_Id__c}  
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </aura:if> 
+                                <aura:set attribute="else"> 
+                                    <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.account.Country__r.Name != 'MEX'}"> 
+                                    <div class="slds-form-element">                            
+                                        <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                        <div class="slds-form-element__control classFormElement"> 
+                                            <div class="slds-form-element__static">                                   
+                                                {!v.personRole.DPM_DMS_Id__c}  
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </aura:if> 
+                                </aura:set> 
+                                </aura:if> 
+                                </div> 
+                            </aura:if>                                    
+                        </aura:set> -->
+                    </aura:if> <!-- Changed by gaurav Max Div Data --> 
+                    <!-- Diversity Data --> 
+                    <!--<div class="{!v.mode=='view'?'':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"/>--> 
+                    <!--<aura:if isTrue="{!v.mode!='view'}"> 
+                        <aura:if isTrue="{!v.personRole.RE_Contact__r.MailingCountry == 'Mexico'}">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                            <div class="slds-form-element">                            
+                                <span class="slds-form-element__label">VPID</span>                                            
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">                                   
+                                         
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </div>
+                        </aura:if>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                            <div class="slds-form-element">                            
+                                <span class="slds-form-element__label">VPID</span>                                             
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">                                   
+                                        {!v.personRole.RE_Contact__r.PsnId__c}  
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </div> 
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                            <aura:if isTrue="{!!v.fromPortal}"> 
+                            <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.personRole.RE_Contact__r.Account_Country__c != 'MEX'}"> 
+                            <div class="slds-form-element">                            
+                                <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">  
+                                        <lightning:input aura:id="idDMSEmployee" variant="label-hidden" label="" type="text" value="{!v.personRole.DPM_DMS_Id__c}" maxlength="12" 
+                                                                 messageWhenValueMissing="Enter DMS Id" 
+                                                                 pattern="[a-zA-Z0-9]*" 
+                                                                 messageWhenPatternMismatch="The DMS Employee# entered is not valid.   Only letters and numbers are accepted in this field"  
+                                                                 disabled="{!!(v.corporatePermissions.editDMSId || v.isRetailerAdmin)}"                                                                 
+                                                                 /> 
+                                    </div> 
+                                </div> 
+                            </div> 
+                            </aura:if> 
+                            <aura:set attribute="else"> 
+                                <aura:if isTrue="{!v.personRole.RE_Contact__r.RecordType.Name != 'Supplier Employee' &amp;&amp; v.account.Country__r.Name != 'MEX'}"> 
+                            <div class="slds-form-element">                            
+                                <span class="slds-form-element__label">DMS Employee#</span>                                             
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">  
+                                        <lightning:input aura:id="idDMSEmployee" variant="label-hidden" label="" type="text" value="{!v.personRole.DPM_DMS_Id__c}" maxlength="12" 
+                                                                 messageWhenValueMissing="Enter DMS Id" 
+                                                                 pattern="[a-zA-Z0-9]*" 
+                                                                 messageWhenPatternMismatch="The DMS Employee# entered is not valid.   Only letters and numbers are accepted in this field"  
+                                                                 disabled="{!v.corporatePermissions.editDMSId}"                                                                 
+                                                                 /> 
+                                    </div> 
+                                </div> 
+                            </div> 
+                            </aura:if> 
+                            </aura:set> 
+                        </aura:if> 
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                            <div class="slds-form-element">                            
+                                <span class="slds-form-element__label"></span>                                             
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">  
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </aura:if> -->
+                    <aura:if isTrue="{!v.IsShowSSNSupplier}">
+                        <!--<aura:if isTrue="{!and(v.personRole.RE_Contact__r.MailingCountry == 'Mexico',v.mode =='view')}">
+                             <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                <div class="slds-form-element">                            
+                                    <span class="slds-form-element__label"></span>                                             
+                                    <div class="slds-form-element__control classFormElement"> 
+                                        <div class="slds-form-element__static">  
+                                        </div> 
+                                    </div> 
+                                </div> 
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                <div class="slds-form-element">                            
+                                    <span class="slds-form-element__label"></span>                                             
+                                    <div class="slds-form-element__control classFormElement"> 
+                                        <div class="slds-form-element__static">  
+                                        </div> 
+                                    </div> 
+                                </div> 
+                            </div>
+                        </aura:if>-->
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                            <div class="slds-form-element"> 
+                                <span class="slds-form-element__label">Retailer Admin</span> 
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <aura:if isTrue="{!v.isSearchModal}"> 
+                                        <aura:if isTrue="{!v.mode=='edit'}"> 
+                                            <lightning:input aura:id="idRetailerAdmin" disabled="{!!v.corporatePermissions.editJobPositions}" type="checkbox" checked="{!v.personRole.RE_IsAdmin__c}"/> 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idRetailerAdmin" disabled="true" type="checkbox" checked="{!v.personRole.RE_IsAdmin__c}"/> 
+                                            </aura:set> 
+                                        </aura:if> 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input aura:id="idRetailerAdmin" disabled="{!v.mode!='admin'}" type="checkbox" checked="{!v.personRole.RE_IsAdmin__c}"/> 
+                                        </aura:set> 
+                                    </aura:if>                                 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </aura:if> 
+                    <!--<div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':''}"/>--> 
+                    <aura:if isTrue="{!v.personRole.RE_Contact__r.MailingCountry=='Mexico'}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"></div> 
+                    </aura:if> 
+                    <aura:if isTrue="{!v.IsShowSSNSupplier}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                            <div class="slds-form-element"> 
+                                <span class="slds-form-element__label">Owner</span> 
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <aura:if isTrue="{!v.isSearchModal}"> 
+                                        <aura:if isTrue="{!v.mode=='edit'}"> 
+                                            <lightning:input aura:id="idOwner" disabled="{!!v.corporatePermissions.editJobPositions}" type="checkbox" checked="{!v.personRole.DPM_Owner__c}" onchange="{!c.ownerCheck}"/> 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idOwner" disabled="true" type="checkbox" checked="{!v.personRole.DPM_Owner__c}" onchange="{!c.ownerCheck}"/> 
+                                            </aura:set> 
+                                        </aura:if> 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input aura:id="idOwner" disabled="{!v.mode!='admin'}" type="checkbox" checked="{!v.personRole.DPM_Owner__c}" onchange="{!c.ownerCheck}"/> 
+                                        </aura:set> 
+                                    </aura:if>                                 
+                                </div> 
+                            </div> 
+                        </div>      
+                        <aura:if isTrue="{!v.personRole.DPM_Owner__c}"> 
+                            <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                                <div class="slds-form-element"> 
+                                    <aura:if isTrue="{!v.isSearchModal}"> 
+                                        
+                                        <aura:if isTrue="{!v.mode!='edit' || !v.corporatePermissions.editJobPositions}"> 
+                                            
+                                            <span class="slds-form-element__label">Owner Title</span> 
+                                        </aura:if> 
+                                        <aura:set attribute="else"> 
+                                            <aura:if isTrue="{!v.mode!='admin'}"> 
+                                                <span class="slds-form-element__label">Owner Title</span> 
+                                            </aura:if> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                    <div class="slds-form-element__control classFormElement"> 
+                                        <aura:if isTrue="{!v.isSearchModal}"> 
+                                            <aura:if isTrue="{!v.mode=='edit'}"> 
+                                                <aura:if isTrue="{!v.corporatePermissions.editJobPositions}"> 
+                                                    <lightning:select required="true" aura:id="idOwnerTitle" label="Owner Title" value="{!v.personRole.DPM_Owner_Title__c}" messageWhenValueMissing="Select Owner Title"> 
+                                                        <aura:iteration items="{!v.ownerPositionsList}" var="item"> 
+                                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.DPM_Owner_Title__c}"></option> 
+                                                        </aura:iteration> 
+                                                    </lightning:select> 
+                                                    <aura:set attribute="else">                                             
+                                                        <div class="slds-form-element__static">{!v.personRole.DPM_Owner_Title__c}</div> 
+                                                    </aura:set> 
+                                                </aura:if> 
+                                                <aura:set attribute="else">                                             
+                                                    <div class="slds-form-element__static">{!v.personRole.DPM_Owner_Title__c}</div> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                            <aura:set attribute="else"> 
+                                                <aura:if isTrue="{!v.mode=='admin'}"> 
+                                                    <lightning:select required="true" aura:id="idOwnerTitle" label="Owner Title" value="{!v.personRole.DPM_Owner_Title__c}" messageWhenValueMissing="Enter Owner Title"> 
+                                                        <aura:iteration items="{!v.ownerPositionsList}" var="item"> 
+                                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.DPM_Owner_Title__c}"></option> 
+                                                        </aura:iteration> 
+                                                    </lightning:select> 
+                                                    <aura:set attribute="else">                                             
+                                                        <div class="slds-form-element__static">{!v.personRole.DPM_Owner_Title__c}</div> 
+                                                    </aura:set> 
+                                                </aura:if> 
+                                            </aura:set> 
+                                        </aura:if>                                      
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </aura:if> 
+                    </aura:if> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Store Code</span> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static">{!v.personRole.RE_Account__r.Retailer__c}</div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Store Name</span> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static">{!v.personRole.RE_Account__r.Name}</div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Store CDSID</span> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static">{!v.personRole.DPM_CDS_Id__c}</div> 
+                            </div>                             
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.isSearchModal}"> 
+                                <span class="slds-form-element__label">Primary CDSID</span> 
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static">{!v.personRole.RE_Contact__r.Cds_Id__c}</div> 
+                                </div>                                 
+                            </aura:if>                             
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Market</span> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static">{!v.personRole.RE_Account__r.Market__r.Name}</div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Region</span> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static">{!v.personRole.RE_Account__r.Region__r.Name}</div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                </div> 
+            </lightning:accordionSection> 
+        </lightning:accordion> 
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="W9 Information"> 
+            <!--<aura:if isTrue="{!or(v.corporatePermissions.viewW9Flag,v.corporatePermissions.viewW9Date,v.corporatePermissions.viewW9Reason)}">--> 
+            <aura:if isTrue="{!OR(v.corporatePermissions.viewW9,v.corporatePermissions.viewW9ForFireFighter)}">     
+                <lightning:accordionSection name="W9 Information" label="W9 Information"> 
+                    <div class="{!v.mode=='view'?'slds-grid slds-wrap slds-m-left_medium':'slds-grid slds-wrap slds-m-left_small'}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                            <div class="slds-form-element"> 
+                                <aura:if isTrue="{!v.mode=='view'}"> 
+                                    <span class="slds-form-element__label">W9 Flag</span> 
+                                </aura:if>                   
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static" autocomplete="off"> 
+                                        <aura:if isTrue="{!v.mode=='view'}"> 
+                                            {!v.personRole.RE_Contact__r.DPM_W9_Flag__c == 'N' ? 'No' : (v.personRole.RE_Contact__r.DPM_W9_Flag__c == 'Y' ? 'Yes' :(v.personRole.RE_Contact__r.DPM_W9_Flag__c == 'E' ? 'Error' : ''))} 
+                                            <aura:set attribute="else"> 
+                                                <lightning:select aura:id="idW9Flag" label="W9 Flag" value="{!v.personRole.RE_Contact__r.DPM_W9_Flag__c}" messageWhenValueMissing="Select W9 Flag" required="true"> 
+                                                    <aura:iteration items="{!v.w9flagList}" var="item"> 
+                                                        <option text="{!item.label}" value="{!item.value}" selected="{!item.value==v.personRole.RE_Contact__r.DPM_W9_Flag__c}"></option> 
+                                                    </aura:iteration> 
+                                                </lightning:select>
+                                            </aura:set> 
+                                        </aura:if> 
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </div> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                            <div class="slds-form-element"> 
+                                <aura:if isTrue="{!v.mode=='view'}"> 
+                                    <span class="slds-form-element__label">W9 Date</span> 
+                                </aura:if> 
+                                <div class="slds-form-element__control"> 
+                                    <form class="slds-form-element__static" autocomplete="off"> 
+                                        <aura:if isTrue="{!v.mode=='view'}"> 
+                                            <lightning:formattedDateTime timeZone="UTC" value="{!v.personRole.RE_Contact__r.DPM_W9_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idW9Date" label="W9 Date" type="Date" value="{!v.personRole.RE_Contact__r.DPM_W9_Date__c}" required="true" 
+                                                                 onchange="{!c.checkW9Date}" dateStyle="short" messageWhenValueMissing="Enter W9 Date" 
+                                                                 messageWhenRangeOverflow="Future Date Not Allowed" 
+                                                                 messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY" 
+                                                                 max="{!v.w9MaxDate}" 
+                                                                 /> 
+                                            </aura:set> 
+                                        </aura:if>                           
+                                    </form> 
+                                </div> 
+                            </div> 
+                        </div> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_4-of-12'}"> 
+                            <div class="slds-form-element"> 
+                                <aura:if isTrue="{!v.mode=='view'}"> 
+                                    <span class="slds-form-element__label">W9 Reason</span> 
+                                </aura:if> 
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <form class="slds-form-element__static" autocomplete="off"> 
+                                        <aura:if isTrue="{!v.mode=='view'}"> 
+                                            {!v.personRole.RE_Contact__r.DPM_W9_Reason__c} 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idW9Reason" label="W9 Reason" type="text" value="{!v.personRole.RE_Contact__r.DPM_W9_Reason__c}" maxlength="60" 
+                                                                 messageWhenValueMissing="Enter W9 Reason" 
+                                                                 /> 
+                                            </aura:set> 
+                                        </aura:if>  
+                                    </form> 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                </lightning:accordionSection> 
+            </aura:if> 
+        </lightning:accordion> 
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="Emails and phone numbers"> 
+            <lightning:accordionSection name="Emails and phone numbers" label="Emails and phone numbers"> 
+                
+                <div class="{!v.mode=='view'?'slds-grid slds-wrap slds-m-left_medium':'slds-grid slds-wrap slds-m-left_small'}"> 
+                    
+                    <aura:if isTrue="{!!v.isSearchModal || v.corporatePermissions.viewPersonalData}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_1-of-2':'slds-col slds-size_1-of-1 slds-large-size_1-of-2'}"> 
+                            <div class="slds-form-element"> 
+                                <aura:if isTrue="{!v.isSearchModal}"> 
+                                    <div class="slds-form-element__control "> <!--classFormElement    : class removed here--> 
+                                        <div class="slds-form-element__static">                             
+                                            <aura:if isTrue="{!v.mode!='edit'}"> 
+                                                Personal Email<br /> {!v.personRole.RE_Contact__r.DPM_Personal_Email__c} 
+                                                <aura:set attribute="else"> 
+                                                    <aura:if isTrue="{!v.corporatePermissions.manageSuppliers}"> 
+                                                        <lightning:input aura:id="idMainEmail" label="Personal Email"  
+                                                                         type="email" value="{!v.personRole.RE_Contact__r.DPM_Personal_Email__c}" pattern="{!$Label.c.DPM_Email_Pattern}"  
+                                                                         messageWhenPatternMismatch="The email entered is not valid"  
+                                                                         messageWhenBadInput="The email entered is not valid" 
+                                                                         disabled="true" 
+                                                                         /> 
+                                                        <aura:set attribute="else"> 
+                                                            <lightning:input aura:id="idMainEmail" label="Personal Email"  
+                                                                             type="email" value="{!v.personRole.RE_Contact__r.DPM_Personal_Email__c}" pattern="{!$Label.c.DPM_Email_Pattern}"  
+                                                                             messageWhenPatternMismatch="The email entered is not valid"  
+                                                                             messageWhenBadInput="The email entered is not valid" 
+                                                                             disabled="{!(!v.corporatePermissions.editPersonalData || v.corporatePermissions.viewW9)}" 
+                                                                             /> 
+                                                        </aura:set> 
+                                                    </aura:if> 
+                                                    <!--fieldLevelHelp="This email is used for identification purposes in our Personnel Management system. It should preferably be a personal email" --> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                        </div> 
+                                    </div> 
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!v.mode=='view'}">
+                                            <div class="slds-form-element__control ">  
+                                                <div class="slds-form-element__static"> 
+                                                    <span class="slds-form-element__label">
+                                                        Personal Email
+                                                    </span>
+                                                </div>
+                                                {!v.personRole.RE_Contact__r.DPM_Personal_Email__c}
+                                            </div>
+                                            
+                                        </aura:if>
+                                        
+                                        <aura:if isTrue="{!AND(v.mode=='admin',v.mode!='view')}">
+                                            <div class="slds-form-element__control ">  
+                                                <div class="slds-form-element__static"> 
+                                                    <lightning:input aura:id="idMainEmail" label="Personal Email"  
+                                                                         type="email" value="{!v.personRole.RE_Contact__r.DPM_Personal_Email__c}" pattern="{!$Label.c.DPM_Email_Pattern}"  
+                                                                         messageWhenPatternMismatch="The email entered is not valid"  
+                                                                         messageWhenBadInput="The email entered is not valid"
+                                                                         disabled="true"/>
+                                                </div>
+                                            </div>
+                                        </aura:if>
+                                        
+                                        <div class="slds-form-element__control "> 
+                                            <div class="slds-form-element__static">                             
+                                                <aura:if isTrue="{!AND(v.mode !='admin',v.mode!='view')}"> 
+                                                        <lightning:input aura:id="idMainEmail" label="Personal Email"  
+                                                                         type="email" value="{!v.personRole.RE_Contact__r.DPM_Personal_Email__c}" pattern="{!$Label.c.DPM_Email_Pattern}"  
+                                                                         messageWhenPatternMismatch="The email entered is not valid"  
+                                                                         messageWhenBadInput="The email entered is not valid"
+                                                                         /> 
+                                                </aura:if> 
+                                            </div> 
+                                        </div>
+                                    </aura:set>
+                                </aura:if>                             
+                            </div> 
+                        </div> 
+                    </aura:if> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_1-of-2':'slds-col slds-size_1-of-1 slds-large-size_1-of-2'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Work Email</span> 
+                                <div class="tooltip"> 
+                                    <lightning:icon size="x-small" iconName="utility:info" alternativeText="info" title="info" /> 
+                                    <span class="tooltiptext">This email is used for identification purposes in our Personnel Management system, and Volvo Cars corporate communications. It should be your Retailer issued work email. If you do not have one, you may use your personal email</span> 
+                                </div> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <form class="slds-form-element__static" autocomplete="off">                             
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.DPM_Work_Email__c} 
+                                        <aura:set attribute="else"> 
+                                            <!-- changed by gaurav for story 2261938 --> 
+                                            <lightning:input aura:id="idWorkEmail" label="Work Email" type="email" value="{!v.personRole.DPM_Work_Email__c}" pattern="{!$Label.c.DPM_Email_Pattern}"  
+                                                             messageWhenPatternMismatch="The email entered is not valid" 
+                                                             required="true" 
+                                                             fieldLevelHelp="This email is used for identification purposes in our Personnel Management system, and Volvo Cars corporate communications. It should be your Retailer issued work email. If you do not have one, you may use your personal email" 
+                                                             messageWhenBadInput="The email entered is not valid" messageWhenValueMissing="Enter Email Address" 
+                                                             disabled="{!v.corporatePermissions.viewW9}"/> 
+                                        </aura:set> 
+                                    </aura:if>
+                                </form> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <aura:if isTrue="{!!v.isSearchModal || v.corporatePermissions.viewPersonalData}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_1-of-2':'slds-col slds-size_1-of-1 slds-large-size_1-of-2'}"> 
+                            <div class="slds-form-element"> 
+                                <aura:if isTrue = "{!(v.personRole.RE_Contact__r.MailingCountry != 'Mexico')}"> 
+                                    <span class="slds-form-element__label">Personal Phone#</span> 
+                                    <aura:set attribute="else"> 
+                                        <span class="slds-form-element__label">Contact Phone#</span> 
+                                    </aura:set> 
+                                </aura:if>                                 
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static"> 
+                                        <aura:if isTrue="{!v.isSearchModal}"> 
+                                            <aura:if isTrue="{!v.mode!='edit'}"> 
+                                                {!v.personRole.RE_Contact__r.Phone} 
+                                                <aura:set attribute="else"> 
+                                                    <aura:if isTrue="{!v.corporatePermissions.manageSuppliers}"> 
+                                                        <lightning:input aura:id="idPersonalPhone" variant="label-hidden" type="tel" value="{!v.personRole.RE_Contact__r.Phone}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Personal Phone#" messageWhenTooShort="Personal Phone is not valid. Please enter a 10 digit Phone Number." disabled="true"/> 
+                                                        <aura:set attribute="else"> 
+                                                            <lightning:input aura:id="idPersonalPhone" variant="label-hidden" type="tel" value="{!v.personRole.RE_Contact__r.Phone}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Personal Phone#" messageWhenTooShort="Personal Phone is not valid. Please enter a 10 digit Phone Number." disabled="{!(!v.corporatePermissions.editPersonalData || v.corporatePermissions.viewW9)}"/> 
+                                                        </aura:set> 
+                                                    </aura:if> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                            <aura:set attribute="else"> 
+                                                <aura:if isTrue="{!v.mode=='view'}"> 
+                                                    {!v.personRole.RE_Contact__r.Phone} 
+                                                    <aura:set attribute="else"> 
+                                                        <aura:if isTrue ="{!v.mode=='admin'}"> 
+                                                        	<lightning:input aura:id="idPersonalPhone" variant="label-hidden" disabled="true" type="tel" value="{!v.personRole.RE_Contact__r.Phone}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Personal Phone#" messageWhenTooShort="Personal Phone is not valid. Please enter a 10 digit Phone Number."/>
+                                                    		<aura:set attribute ="else">
+                                                            	<lightning:input aura:id="idPersonalPhone" variant="label-hidden" type="tel" value="{!v.personRole.RE_Contact__r.Phone}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Personal Phone#" messageWhenTooShort="Personal Phone is not valid. Please enter a 10 digit Phone Number."/>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </aura:set> 
+                                                </aura:if> 
+                                            </aura:set> 
+                                        </aura:if>                                         
+                                    </div> 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </aura:if> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_1-of-2':'slds-col slds-size_1-of-1 slds-large-size_1-of-2'}"> 
+                        <div class="slds-form-element"> 
+                            <span class="slds-form-element__label">Work Phone#</span> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <form class="slds-form-element__static" autocomplete="off"> 
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        {!v.personRole.DPM_Work_Phone__c} 
+                                        <aura:set attribute="else"> 
+                                            <lightning:input disabled="{!v.corporatePermissions.viewW9}" aura:id="idWorkPhone" variant="label-hidden" type="tel" value="{!v.personRole.DPM_Work_Phone__c}" pattern="[0-9]+" maxlength="10" minlength="10" messageWhenBadInput="Phone number is not valid" messageWhenPatternMismatch="Phone number is not valid" messageWhenValueMissing="Enter Work Phone#" messageWhenTooShort="Work Phone is not valid. Please enter a 10 digit Phone Number."/> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                </form> 
+                            </div> 
+                        </div> 
+                    </div>   
+                </div> 
+            </lightning:accordionSection> 
+        </lightning:accordion>                
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="Address"> 
+            <lightning:accordionSection name="Address" label="Address"> 
+                <div class="{!v.mode=='view'?'slds-grid slds-wrap slds-m-left_medium':'slds-grid slds-wrap slds-m-left_small'}"> 
+                    <aura:if isTrue="{!!v.isSearchModal || v.corporatePermissions.viewPersonalData}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1'}"> 
+                            <div class="slds-form-element"> 
+                                <aura:if isTrue="{!v.isSearchModal}"> 
+                                    <aura:if isTrue="{!v.mode!='edit' || !v.homeAddressEditable}"> 
+                                        <span class="slds-form-element__label">Home Address</span> 
+                                    </aura:if> 
+                                    <aura:set attribute="else"> 
+                                        <aura:if isTrue="{!or(v.mode=='view',v.mode=='admin')}"> 
+                                            <span class="slds-form-element__label">Home Address</span> 
+                                        </aura:if> 
+                                    </aura:set> 
+                                </aura:if>                                 
+                                <div class="slds-form-element__control classFormElement"> 
+                                    <div class="slds-form-element__static"> 
+                                        <aura:if isTrue="{!v.isSearchModal}"> 
+                                            <aura:if isTrue="{!v.mode!='edit' || !v.homeAddressEditable}"> 
+                                                <lightning:formattedAddress street="{!v.personRole.RE_Contact__r.MailingStreet}" city="{!v.personRole.RE_Contact__r.MailingCity}" country="{!v.personRole.RE_Contact__r.MailingCountry}" province="{!v.personRole.RE_Contact__r.MailingState}" postalCode="{!v.personRole.RE_Contact__r.MailingPostalCode}" disabled="true"/> 
+                                                <aura:set attribute="else">                                             
+                                                    <lightning:inputAddress aura:id="idHomeAddress" addressLabel="Home Address" required="{!(v.personRole.RE_Contact__r.MailingCountry != 'Mexico')}" onchange="{!c.addressChange}" 
+                                                                            street="{!v.personRole.RE_Contact__r.MailingStreet}" streetLabel="Home Street"  
+                                                                            city="{!v.personRole.RE_Contact__r.MailingCity}" cityLabel="Home City" 
+                                                                            postalCode="{!v.personRole.RE_Contact__r.MailingPostalCode}" postalCodeLabel="Home Zip/Postal Code" 
+                                                                            province="{!v.personRole.RE_Contact__r.MailingState}" provinceLabel="Home State/Province" provinceOptions="{!v.stateList}" 
+                                                                            country="{!v.personRole.RE_Contact__r.MailingCountry}" countryLabel="Home Country" countryOptions="{!v.countryList}" 
+                                                                            /> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                            <aura:set attribute="else"> 
+                                                <aura:if isTrue="{!or(v.mode=='view',v.mode=='admin')}"> 
+                                                    <lightning:formattedAddress street="{!v.personRole.RE_Contact__r.MailingStreet}" city="{!v.personRole.RE_Contact__r.MailingCity}" country="{!v.personRole.RE_Contact__r.MailingCountry}" province="{!v.personRole.RE_Contact__r.MailingState}" postalCode="{!v.personRole.RE_Contact__r.MailingPostalCode}" disabled="true"/> 
+                                                    <aura:set attribute="else">                                             
+                                                        <lightning:inputAddress aura:id="idHomeAddress" addressLabel="Home Address" required="{!(v.personRole.RE_Contact__r.MailingCountry != 'Mexico')}" onchange="{!c.addressChange}" 
+                                                                                street="{!v.personRole.RE_Contact__r.MailingStreet}" streetLabel="Home Street"  
+                                                                                city="{!v.personRole.RE_Contact__r.MailingCity}" cityLabel="Home City" 
+                                                                                postalCode="{!v.personRole.RE_Contact__r.MailingPostalCode}" postalCodeLabel="Home Zip/Postal Code" 
+                                                                                province="{!v.personRole.RE_Contact__r.MailingState}" provinceLabel="Home State/Province" provinceOptions="{!v.stateList}" 
+                                                                                country="{!v.personRole.RE_Contact__r.MailingCountry}" countryLabel="Home Country" countryOptions="{!v.countryList}" 
+                                                                                /> 
+                                                    </aura:set> 
+                                                </aura:if> 
+                                            </aura:set> 
+                                        </aura:if>                                         
+                                    </div>                                 
+                                </div> 
+                            </div> 
+                        </div> 
+                    </aura:if> 
+                    <aura:if isTrue="{!!v.isSearchModal || v.corporatePermissions.viewPersonalData}"> 
+                        <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1'}"> 
+                            <aura:if isTrue="{!v.mode!='view'}"> 
+                                <lightning:input type="checkbox" disabled ="{!v.corporatePermissions.viewW9 || v.corporatePermissions.isIncentiveProfile}" variant="label-stacked" label="Use store main address as my work address" checked="{!v.personRole.DPM_Work_Address_Same_as_Store_Address__c}" onchange="{!c.handleWorkAddress}"/> 
+                            </aura:if>                             
+                        </div> 
+                    </aura:if> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.mode=='view'}"> 
+                                <span class="slds-form-element__label">Work Address</span> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <form class="slds-form-element__static" autocomplete="off">                             
+                                    <aura:if isTrue="{!v.mode=='view'}"> 
+                                        <lightning:formattedAddress street="{!v.personRole.DPM_Work_Address_Street__c}" city="{!v.personRole.DPM_Work_Address_City__c}" country="{!v.personRole.RE_Contact__r.MailingCountry}" province="{!v.personRole.DPM_Work_Address_State__c}" postalCode="{!v.personRole.DPM_Work_Address_Zip_Postal_Code__c}" disabled="true" /> 
+                                        <aura:set attribute="else"> 
+                                            <lightning:inputAddress aura:id="idWorkAddress" addressLabel="Work Address" onchange="{!c.addressChange}" disabled="{!v.personRole.DPM_Work_Address_Same_as_Store_Address__c || v.corporatePermissions.isIncentiveProfile}" 
+                                                                    street="{!v.personRole.DPM_Work_Address_Street__c}" streetLabel="Work Street" 
+                                                                    city="{!v.personRole.DPM_Work_Address_City__c}" cityLabel="Work City" 
+                                                                    postalCode="{!v.personRole.DPM_Work_Address_Zip_Postal_Code__c}" postalCodeLabel="Work Zip/Postal Code" 
+                                                                    province="{!v.personRole.DPM_Work_Address_State__c}" provinceLabel="Work State/Province" provinceOptions="{!v.stateListWork}" 
+                                                                    country="{!v.personRole.DPM_Work_Address_Country__c}" countryLabel="Work Country" countryOptions="{!v.countryList}" 
+                                                                    /> 
+                                        </aura:set> 
+                                    </aura:if> 
+                                </form> 
+                            </div>                     
+                        </div> 
+                    </div> 
+                    <aura:if isTrue="{!v.mode=='view'}"> 
+                        <aura:if isTrue="{!!v.isSearchModal || v.corporatePermissions.viewPersonalData}"> 
+                            <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1'}"> 
+                                <div class="slds-form-element"> 
+                                    <span class="slds-form-element__label">Use store main address as my work address</span> 
+                                    <div class="slds-form-element__control"> 
+                                        <div class="slds-form-element__static">                                     
+                                            <div class="slds-checkbox"> 
+                                                <input disabled="{!v.mode=='view'}" type="checkbox" id="idCopyAddress" name="copyAddress" checked="{!v.personRole.DPM_Work_Address_Same_as_Store_Address__c}" /> 
+                                                <label class="slds-checkbox__label" for="idCopyAddress"> 
+                                                    <span class="slds-checkbox_faux"></span> 
+                                                </label> 
+                                            </div> 
+                                        </div> 
+                                    </div>                                
+                                </div> 
+                            </div> 
+                        </aura:if> 
+                    </aura:if> 
+                </div> 
+            </lightning:accordionSection> 
+        </lightning:accordion>  
+        
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="Positions">             
+            <lightning:accordionSection name="Positions" label="Positions"> 
+                <div class="{!v.mode=='view'?'slds-grid slds-wrap slds-m-left_medium':'slds-m-left_medium slds-m-right_medium slds-grid slds-wrap'}">   
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_6-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.isSearchModal}"> 
+                                <aura:if isTrue="{!v.mode!='edit' || !v.positionEditable}"> 
+                                    <span class="slds-form-element__label">Hire Date</span> 
+                                </aura:if> 
+                                <aura:set attribute="else"> 
+                                    <aura:if isTrue="{!v.mode!='admin'}"> 
+                                        <span class="slds-form-element__label">Hire Date</span> 
+                                    </aura:if> 
+                                </aura:set> 
+                            </aura:if>                             
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static"> 
+                                    <aura:if isTrue="{!v.isSearchModal}"> 
+                                        <aura:if isTrue="{!v.mode!='edit' || !v.positionEditable}"> 
+                                            <lightning:formattedDateTime timeZone="UTC" value="{!v.personRole.RE_Psn_Active_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idHireDate" onblur="{!c.checkHireDate}" type="date" label="Hire Date" value="{!v.personRole.RE_Psn_Active_Date__c}" required="true" dateStyle="short" messageWhenValueMissing="Enter Hire Date" messageWhenRangeOverflow="Hire date is more than 2 months ahead, please create Employee closer to start date" 
+                                                                 messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY."/> 
+                                            </aura:set> 
+                                        </aura:if> 
+                                        <aura:set attribute="else"> 
+                                            <aura:if isTrue="{!v.mode=='admin'}">
+                                                <lightning:input aura:id="idHireDate" onblur="{!c.checkHireDate}" type="date" label="Hire Date" value="{!v.personRole.RE_Psn_Active_Date__c}" required="true" dateStyle="short" messageWhenValueMissing="Enter Hire Date" messageWhenRangeOverflow="Hire date is more than 2 months ahead, please create Employee closer to start date" 
+                                                                 messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY." 
+                                                                 
+                                                                 /> 
+                                                <aura:set attribute="else"> 
+                                                    <lightning:formattedDateTime timeZone="UTC" value="{!v.personRole.RE_Psn_Active_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                        </aura:set> 
+                                    </aura:if>                                     
+                                </div> 
+                            </div> 
+                        </div> 
+                    </div> 
+                    <div class="{!v.mode=='view'?'slds-col slds-size_1-of-1 slds-large-size_3-of-12':'slds-col slds-size_1-of-1 slds-large-size_6-of-12'}"> 
+                        <div class="slds-form-element"> 
+                            <aura:if isTrue="{!v.isSearchModal}"> 
+                                <aura:if isTrue="{!v.mode!='edit' || !v.positionEditable}"> 
+                                    <span class="slds-form-element__label">Termination Date</span> 
+                                </aura:if> 
+                                <aura:set attribute="else"> 
+                                    <aura:if isTrue="{!v.mode!='admin'}"> 
+                                        <span class="slds-form-element__label">Termination Date</span> 
+                                    </aura:if> 
+                                </aura:set> 
+                            </aura:if> 
+                            <div class="slds-form-element__control classFormElement"> 
+                                <div class="slds-form-element__static"> 
+                                    <aura:if isTrue="{!v.isSearchModal}"> 
+                                        <aura:if isTrue="{!v.mode!='edit' || !v.positionEditable}"> 
+                                            <lightning:formattedDateTime timeZone="UTC" value="{!v.personRole.RE_Psn_NonActive_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                            <aura:set attribute="else"> 
+                                                <lightning:input aura:id="idTerminationDate" type="date" label="Termination Date" value="{!v.personRole.RE_Psn_NonActive_Date__c}" dateStyle="short" onchange="{!c.checkTerminationDate}" 
+                                                                 messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY." 
+                                                                 /> 
+                                            </aura:set> 
+                                        </aura:if> 
+                                        <aura:set attribute="else"> 
+                                            <aura:if isTrue="{!v.mode=='admin'}"> 
+                                                <lightning:input aura:id="idTerminationDate" type="date" label="Termination Date" value="{!v.personRole.RE_Psn_NonActive_Date__c}" dateStyle="short" onchange="{!c.checkTerminationDate}" 
+                                                                 messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY." 
+                                                                 
+                                                                 /> 
+                                                <aura:set attribute="else"> 
+                                                    <lightning:formattedDateTime timeZone="UTC" value="{!v.personRole.RE_Psn_NonActive_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                                </aura:set> 
+                                            </aura:if> 
+                                        </aura:set> 
+                                    </aura:if>                                     
+                                </div> 
+                            </div>                             
+                        </div> 
+                    </div> 
+                </div> 
+                <div class="slds-grid slds-wrap slds-m-around_large slds-box"> 
+                    <label class="slds-form-element__label slds-col slds-size_1-of-1 slds-large-size_1-of-1">Job Positions</label> 
+                    <aura:if isTrue="{!v.isSearchModal}"> 
+                        <aura:if isTrue="{!v.mode!='edit' || !v.positionEditable}"> 
+                            <aura:iteration items="{!v.personRole.DPM_Job_Positions__r}" var="jobPosition" indexVar="{!index}"> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element"> 
+                                        <span class="slds-form-element__label">Position</span> 
+                                        <div class="slds-form-element__control"> 
+                                            <div class="slds-form-element__static">{!jobPosition.DPM_Position_Title__c}</div> 
+                                        </div> 
+                                    </div> 
+                                </div> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element"> 
+                                        <span class="slds-form-element__label">Start Date</span> 
+                                        <div class="slds-form-element__control"> 
+                                            <div class="slds-form-element__static"> 
+                                                <lightning:formattedDateTime timeZone="UTC" value="{!jobPosition.DPM_Position_Start_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element"> 
+                                        <span class="slds-form-element__label">End Date</span> 
+                                        <div class="slds-form-element__control"> 
+                                            <div class="slds-form-element__static" id="{!jobPosition.DPM_Position_End_Date__c}"> 
+                                                <lightning:formattedDateTime timeZone="UTC" value="{!jobPosition.DPM_Position_End_Date__c}"  
+                                                                             year="numeric" month="2-digit" day="2-digit" 
+                                                                             /> 
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div> 
+                                <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                    <div class="slds-form-element"> 
+                                        <span class="slds-form-element__label">Primary</span> 
+                                        <div class="slds-form-element__control"> 
+                                            <div class="slds-form-element__static">                                     
+                                                <div class="slds-checkbox"> 
+                                                    <input disabled="true" type="checkbox" name="owner" id="{!'idCheckboxPrimary'+index}" checked="{!jobPosition.DPM_Primary_Position__c}" /> 
+                                                    <label class="slds-checkbox__label" for="{!'idCheckboxPrimary'+index}"> 
+                                                        <span class="slds-checkbox_faux"></span> 
+                                                    </label> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                    </div> 
+                                </div> 
+                            </aura:iteration> 
+                            <aura:set attribute="else"> 
+                                <c:DPM_NewRetailerEmployeeJobPositions aura:id="idJPCmp" lastStartDate="" jobPositions="{!v.personRole.DPM_Job_Positions__r}" positionsList="{!v.positionsList}" primaryPositionsList="{!v.primaryPositionsList}" ownerPositionsList="{!v.ownerPositionsList}" blnReadOnly="false" fromEmployeeProfile="true"/> 
+                                <div class="slds-form-element__label slds-col slds-size_1-of-1 slds-large-size_1-of-1">                                    
+                                    <a onclick="{!c.addNewPosition}">+ Add Position</a> 
+                                </div> 
+                            </aura:set> 
+                        </aura:if> 
+                        <aura:set attribute="else"> 
+                            <aura:if isTrue="{!v.mode=='admin'}"> 
+                                <c:DPM_NewRetailerEmployeeJobPositions aura:id="idJPCmp" terminationDate = "{!v.personRole.RE_Psn_NonActive_Date__c}" lastStartDate="" jobPositions="{!v.personRole.DPM_Job_Positions__r}" positionsList="{!v.positionsList}" primaryPositionsList="{!v.primaryPositionsList}"  ownerPositionsList="{!v.ownerPositionsList}" blnReadOnly="false" fromEmployeeProfile="true"/> 
+                                <div class="slds-form-element__label slds-col slds-size_1-of-1 slds-large-size_1-of-1"> 
+                                    <a onclick="{!c.addNewPosition}">+ Add Position</a></div> 
+                                <aura:set attribute="else"> 
+                                    <aura:iteration items="{!v.personRole.DPM_Job_Positions__r}" var="jobPosition" indexVar="{!index}"> 
+                                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Position</span> 
+                                                <div class="slds-form-element__control"> 
+                                                    <div class="slds-form-element__static">{!jobPosition.DPM_Position_Title__c}</div> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Start Date</span> 
+                                                <div class="slds-form-element__control"> 
+                                                    <div class="slds-form-element__static"> 
+                                                        <lightning:formattedDateTime timeZone="UTC" value="{!jobPosition.DPM_Position_Start_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                                    </div> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">End Date</span> 
+                                                <div class="slds-form-element__control"> 
+                                                    <div class="slds-form-element__static"> 
+                                                        <lightning:formattedDateTime timeZone="UTC" value="{!jobPosition.DPM_Position_End_Date__c}" year="numeric" month="2-digit" day="2-digit"/> 
+                                                    </div> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                        <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12"> 
+                                            <div class="slds-form-element"> 
+                                                <span class="slds-form-element__label">Primary</span> 
+                                                <div class="slds-form-element__control"> 
+                                                    <div class="slds-form-element__static">                                     
+                                                        <div class="slds-checkbox"> 
+                                                            <input disabled="true" type="checkbox" name="owner" id="{!'idCheckboxPrimary'+index}" checked="{!jobPosition.DPM_Primary_Position__c}" /> 
+                                                            <label class="slds-checkbox__label" for="{!'idCheckboxPrimary'+index}"> 
+                                                                <span class="slds-checkbox_faux"></span> 
+                                                            </label> 
+                                                        </div> 
+                                                    </div> 
+                                                </div> 
+                                            </div> 
+                                        </div> 
+                                    </aura:iteration> 
+                                </aura:set> 
+                            </aura:if>  
+                        </aura:set> 
+                    </aura:if> 
+                </div> 
+            </lightning:accordionSection> 
+        </lightning:accordion> 
+    </div> 
+</aura:component>
