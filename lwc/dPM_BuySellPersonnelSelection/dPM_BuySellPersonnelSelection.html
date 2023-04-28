@@ -1,0 +1,81 @@
+<template>
+    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                <lightning-icon icon-name="utility:close"
+                 alternative-text="close"
+                 variant="inverse"
+                 size="small" ></lightning-icon>
+                <span class="slds-assistive-text">Close</span>
+                </button>
+            <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Active Personnel Transfer</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="slds-form-element">
+                                <span class="slds-form-element__label">Selling Retailer</span>
+                                <div class="slds-form-element__control classFormElement">
+                                    <div class="slds-form-element__static"><template if:true={sellingRetailerIdName}>{sellingRetailerIdName}</template></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="slds-form-element">
+                                <span class="slds-form-element__label">Buying Retailer</span>
+                                <div class="slds-form-element__control classFormElement">
+                                    <div class="slds-form-element__static"><template if:true={buyingRetailerIdName}>{buyingRetailerIdName}</template></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                            <div class="slds-form-element">
+                                <span class="slds-form-element__label">Original Appointment Date</span>
+                                <div class="slds-form-element__control classFormElement">
+                                    <div class="slds-form-element__static">
+                                        <template if:true={originalAppointmentDate}>
+                                            <lightning-formatted-date-time time-zone="UTC" value={originalAppointmentDate} year="numeric" month="2-digit" day="2-digit"></lightning-formatted-date-time>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                                
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1">
+                    <div class="slds-form-element">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-1">
+                            <template if:true={prsnRolList}>
+                                <p class="slds-p-around_x-small slds-border_top slds-border_left slds-border_right"><b style="color: rgb(81, 79, 77);">Please select Employees from the Selling retailer that should be transferred to the Buying retailer</b></p>
+                                <div class="slds-border_top slds-border_left slds-border_right">
+                                    <lightning-datatable 
+                                    resize-column-disabled 
+                                    data={prsnRolList} 
+                                    columns={columns} s
+                                    key-field="Id" 
+                                    onrowselection={rowSelection} 
+                                    data-id="datarow">
+                                    </lightning-datatable>
+                                </div>
+                            </template>
+                            <template if:true={error}>
+                                {error}
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_brand" disabled={showButton} onclick={handleAdd}>Transfer Personnel</button>
+                    <button class="slds-button slds-button_brand" onclick={nextModal}>Back</button>
+                    <!--<button class="slds-button slds-button_brand" onclick={nextModal}>Cancel</button>-->
+                </footer>
+        </div>
+   </section>
+        <template if:true={blnNotificationActive}>
+            <c-d-p-m_-notification-library onnotification={handleNotification} str-modal-header={strModalHeader} str-modal-body={strModalBody} str-modal-type={strModalType} bln-confirm-button={blnConfirmButton} bln-edit-list-button={blnEditListButton}></c-d-p-m_-notification-library>
+        </template>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

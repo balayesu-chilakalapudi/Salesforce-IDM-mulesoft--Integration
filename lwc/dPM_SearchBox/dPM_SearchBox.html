@@ -1,0 +1,27 @@
+<template>
+    <div class="slds-form-element">
+        <div class="classEnvelope slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open" aria-expanded="true" aria-haspopup="listbox" role="combobox">
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <input required={isRequired} type="text" onblur={hideOptions} onfocus={showOptions} onkeyup={filterOptions} class="slds-input slds-combobox__input classFilterInput" id="combobox-id-16" aria-activedescendant="option1" aria-autocomplete="list" aria-controls="listbox-id-12" autocomplete="off" role="textbox" placeholder="Search..." aria-invalid="true" aria-describedby="error-message-unique-id"/>
+                        <div class="slds-form-element__help slds-hide" id="error-message-unique-id">{errorMessage}</div>                        
+                    </div>
+                    <div data-record="idOptionsDisplay" tabindex="0" id="listbox-id-12" class="slds-hide slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid classOptionsBox" role="listbox">
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <template for:each={optionsFiltered} for:item="option">
+                                <li key={option.value} role="presentation" class="slds-listbox__item" onclick={optionSelected} data-record={option.value}>
+                                    <div aria-selected="true" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-has-focus" role="option">
+                                        <span class="slds-media__body">
+                                            <span class="slds-truncate" title={option.label}>{option.label}</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

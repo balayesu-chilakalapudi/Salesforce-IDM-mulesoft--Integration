@@ -1,0 +1,11 @@
+.slds-modal__content {
+    overflow:initial;
+}
+.classItalics {
+    font-style:italic;
+}
+@media screen and (max-width: 1280px) {
+    .slds-modal__content {
+        overflow:scroll;
+    }
+}

@@ -1,0 +1,10 @@
+.slds-button_brand[disabled], .slds-button_brand:disabled {
+    background-color: rgb(201, 199, 197) !important;
+    color: rgb(255, 255, 255) !important;
+    border-color: rgb(201, 199, 197) !important;
+}
+.slds-button_brand[disabled]:hover {
+    background-color: rgb(201, 199, 197) !important;
+    color: rgb(255, 255, 255) !important;
+    border-color: rgb(201, 199, 197) !important;
+}

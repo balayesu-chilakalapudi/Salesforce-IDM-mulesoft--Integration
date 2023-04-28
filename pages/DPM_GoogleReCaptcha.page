@@ -1,0 +1,64 @@
+<apex:page >
+    <html>
+        <head>
+            <script>
+            var googleSiteKey = "{!$Label.DPM_GoogleRecaptchaSiteKey}";
+            var varSite = "{!$Label.DPM_InstanceURL}";
+            var verifyCallback = function(response) {
+                parent.postMessage("Unlock",varSite);
+            };
+            var expiredCallback = function(response) {
+                parent.postMessage("Lock",varSite);
+            };
+            var onloadCallback = function() {
+                grecaptcha.render('html_element',{
+                    'sitekey':googleSiteKey,
+                    'callback':verifyCallback,
+                    'expired-callback':expiredCallback
+                });
+            };
+            </script>
+        </head>
+        <body id="iFrameBody">            
+            <form action="?" method="POST">
+                <div id="html_element"></div>
+                <br/>
+                <input type="submit" value="Submit" style="display:none"/>
+            </form>
+            <div id="captcha" />
+            <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async="" defer="">
+            </script>
+            <script>
+            const targetNode = document.getElementById('html_element');
+            const iframeBodyNode = document.getElementById('iFrameBody');
+            const config = { childList: true, subtree: true, attributes: true };
+            const callback = function(mutationsList) {
+                //console.log('element: '+document.querySelector("[title='recaptcha challenge']"));
+                for(const mutation of mutationsList) {
+                    //console.log('A child node has been added or removed.'); 
+                    //console.log('element: '+document.querySelector("[title='recaptcha challenge']"));
+                    //check if recaptcha challenge element is present
+                    if(document.querySelector("[title='recaptcha challenge expires in two minutes']")) {
+                        //console.log(document.querySelector("[title='recaptcha challenge']").parentElement.parentElement.style.visibility);
+                        //check if recaptcha challenge element is active
+                        if(document.querySelector("[title='recaptcha challenge expires in two minutes']").parentElement.parentElement.style.visibility == 'hidden') {
+                            parent.postMessage("hidden_recaptchaChallenge",varSite);
+                        } else {
+                            parent.postMessage("visible_recaptchaChallenge",varSite);
+                        }                        
+                    }
+                }
+            };
+            // Create an observer instance linked to the callback function
+            const observer = new MutationObserver(callback);
+            // Start observing the target node for recaptcha challenge image changes
+            observer.observe(document.body, config);
+            </script>
+            <style>
+                @media screen and (max-height: 575px){
+                #rc-imageselect, .g-recaptcha {transform:scale(0.77);-webkit-transform:scale(0.77);transform-origin:0 0;-webkit-transform-origin:0 0;}
+                }
+            </style>
+        </body>
+    </html>
+</apex:page>
