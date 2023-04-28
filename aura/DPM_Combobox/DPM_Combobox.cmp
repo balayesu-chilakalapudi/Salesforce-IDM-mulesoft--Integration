@@ -1,0 +1,36 @@
+<aura:component>
+    <aura:attribute name="options" type="List" description="Used to store the values for the combobox"/>
+    <aura:attribute name="optionsFiltered" type="List" description="Used to store the values for the combobox"/>
+    <aura:attribute name="selectedOption" type="String" description="Used to store the selected option"/>
+    <aura:attribute name="preventBlur" type="Boolean" default="false"/>
+    <aura:handler name="change" value="{!v.options}" action="{!c.optionsChange}"/>
+    <div class="slds-form-element">
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open" aria-expanded="true" aria-haspopup="listbox" role="combobox">
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <input aura:id="idOptionInput" type="text" value="{!v.selectedOption}" onblur="{!c.hideOptions}" onfocus="{!c.showOptions}" onkeyup="{!c.filterOptions}" class="slds-input slds-combobox__input" id="combobox-id-16" aria-activedescendant="option1" aria-autocomplete="list" aria-controls="listbox-id-12" autocomplete="off" role="textbox" placeholder="Search..." />
+                        <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                            <!--<svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                                <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
+                            </svg>-->
+                        </span>
+                    </div>
+                    <div id="listbox-id-12" aura:id="idOptionsBox" onmousedown="{!c.preventBlur}" class="slds-hide slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox">
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <aura:iteration items="{!v.optionsFiltered}" var="option">
+                                <li role="presentation" class="slds-listbox__item" onclick="{!c.optionSelected}" data-record="{!option}">
+                                    <div aria-selected="true" id="option1" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-has-focus" role="option">
+                                        <span class="slds-media__body">
+                                            <span class="slds-truncate" title="{!option}">{!option}</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </aura:iteration> 
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

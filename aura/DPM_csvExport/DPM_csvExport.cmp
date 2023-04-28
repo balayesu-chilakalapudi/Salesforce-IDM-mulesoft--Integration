@@ -1,0 +1,9 @@
+<aura:component>
+    <aura:attribute name="records" type="sObject[]" />
+    <aura:attribute name="fileName" type="String" />
+     <aura:attribute name="fileHeader" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.downloadCsv}"/>
+    <!--
+    <lightning:buttonIcon iconName="utility:download" onclick="{!c.downloadCsv}" alternativeText="Export Data" />
+    -->
+</aura:component>

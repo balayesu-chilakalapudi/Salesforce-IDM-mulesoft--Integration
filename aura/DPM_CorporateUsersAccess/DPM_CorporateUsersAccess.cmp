@@ -1,0 +1,62 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" 
+                access="global"
+                controller="DPM_CorporateUsersAccessController">
+    <aura:attribute name="generatedDate" type="String" default="" />
+    <aura:attribute name="RecordList" type="List" default="[]" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <div style="margin:0.5%">
+        <div class="slds-page-header">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__figure">
+                            <lightning:icon iconName="standard:report" alternativeText="Corporate DPM users' access " title="Corporate DPM users' access " size="large" />
+                        </div>
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="Corporate DPM users' access">Corporate DPM users' access</span>
+                                    </h1>
+                                </div>
+                            </div>
+                            <p class="slds-page-header__name-meta">Report generated on {!v.generatedDate} </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th scope="col">Employee Full Name</th>
+                    <th scope="col">User Name</th>
+                    <th scope="col">Psn ID</th>
+                    <th scope="col">Org_type</th>
+                    <th scope="col">Org_Idn</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">DPM Permission Sets</th>
+                    <th scope="col">DPM Public Groups</th>
+                    <th scope="col">DPM Queues</th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.RecordList}" var="record">
+                <tr class="slds-line-height_reset">
+                    <td scope="col">{!record.Employee_Full_Name}</td>
+                    <td scope="col">{!record.User_Name}</td>
+                    <td scope="col">{!record.Psn_ID}</td>
+                    <td scope="col">{!record.Org_type}</td>
+                    <td scope="col">{!record.Org_Idn}</td>
+                    <td scope="col">{!record.Title}</td>
+                    <td scope="col">{!record.DPM_Permission_Sets}</td>
+                    <td scope="col">{!record.DPM_Public_Groups}</td>
+                    <td scope="col">{!record.DPM_Queues}</td>
+                </tr>
+            </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+</aura:component>

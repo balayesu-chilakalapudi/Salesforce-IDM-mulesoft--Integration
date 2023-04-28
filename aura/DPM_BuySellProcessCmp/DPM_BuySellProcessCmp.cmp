@@ -1,0 +1,17 @@
+<aura:component>
+    <aura:attribute name="stage" type="String" default="1" description="Used to store the current stage"/>
+    <aura:attribute name="sellingRetailer" type="String" description="Used to store the selling retailer"/>
+    <aura:attribute name="buyingRetailer" type="String" description="Used to store the buying retailer"/>
+    <aura:attribute name="originalAppointmentDate" type="String" description="Used to store the date"/>
+    
+    <!--Using LWC component for Buy/Sell Process-->
+    <div class="slds-hide">Buy/Sell Process</div>
+    <aura:dependency resource="c:dPM_BuySellStoreSelection" />
+    <aura:dependency resource="c:dPM_BuySellPersonnelSelection" />
+    <aura:if isTrue="{!v.stage == '1'}">
+    	<c:dPM_BuySellStoreSelection aura:id="idBuySellStoreSel" oncloseModal="{!c.closeModal}" onnextModal="{!c.nextModal}" selectedSellingRetailerId="{!v.sellingRetailer}" selectedBuyingRetailerId="{!v.buyingRetailer}" varOriginalAppointmentDate="{!v.originalAppointmentDate}"/>
+    </aura:if>
+    <aura:if isTrue="{!v.stage == '2'}">
+        <c:dPM_BuySellPersonnelSelection aura:id="idRetailerEmployeeSel" sellingRetailer="{!v.sellingRetailer}" buyingRetailer="{!v.buyingRetailer}" originalAppointmentDate="{!v.originalAppointmentDate}" oncloseModal="{!c.closeModal}" onnextModal="{!c.nextModal}"/>
+    </aura:if>
+</aura:component>

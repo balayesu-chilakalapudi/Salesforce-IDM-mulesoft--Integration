@@ -1,0 +1,12 @@
+<design:component >
+    <flexipage:template >
+             
+        <flexipage:region name="firstElement" defaultWidth="LARGE">
+            <flexipage:formfactor type="LARGE" width="LARGE" />
+        </flexipage:region>
+        <flexipage:region name="secondElement" defaultWidth="LARGE">
+            <flexipage:formfactor type="LARGE" width="LARGE" />
+        </flexipage:region>
+    </flexipage:template>  
+    
+</design:component>

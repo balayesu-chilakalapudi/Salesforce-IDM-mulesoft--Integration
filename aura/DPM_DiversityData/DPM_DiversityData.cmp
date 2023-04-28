@@ -1,0 +1,109 @@
+<aura:component>
+    <aura:attribute name="DPMEmployee" type="Map" description="Stores the DPM Employee record" default="{}"/>
+    <aura:attribute name="personRole" type="Map" description="Used to store the Person Role for displaying the User Profile"/>
+    <aura:attribute name="raceList" type="List" description="Stores the Race Picklist values" default=""/>
+    <aura:attribute name="otherRace" type="String" description="Stores the other Race value" default=""/>
+    <aura:attribute name="ethnicityList" type="List" description="Stores the Ethnicity Picklist values" default=""/>
+    <aura:attribute name="otherEthnicity" type="String" description="Stores the other Ethnicity value" default=""/>
+    <aura:attribute name="fromEmployeeProfile" type="Boolean" default="false" description="Indicates whether this component is used in Employee Profile form"/>
+    <aura:attribute name="blnEditable" type="Boolean" default="false" description="Indicates whether to show editable version of the form"/>
+    <aura:attribute name="blnShowMessage" type="Boolean" default="true" description="Indicates whether to show the info text of the form"/>
+    <aura:attribute name="country" type="String" default="" description="Country of the employee"/>
+    <aura:attribute name="formType" type="String" default="threeColumn" description="Decides the form type: threeColumn,fourColumn"/>
+    <aura:handler name="change" value="{!v.personRole}" action="{!c.doInit}"/>
+    
+    <aura:if isTrue="{!v.blnShowMessage}"><div style="font-size:smaller;" class="slds-p-top_medium slds-p-bottom_medium"><aura:unescapedHtml value="{!$Label.c.DPM_DiversityDataInfoText}"></aura:unescapedHtml></div></aura:if>
+    <aura:if isTrue="{!(v.country=='United States')}">
+        <div class="{!v.formType=='threeColumn'?'slds-col slds-size_1-of-1 slds-large-size_4-of-12':'slds-col slds-size_1-of-1 slds-large-size_3-of-12'}">
+            <div class="uiInput">
+                <div class="slds-form-element__control">
+                    <aura:if isTrue="{!v.fromEmployeeProfile}">
+                        <aura:if isTrue="{!v.blnEditable}">
+                            <lightning:select aura:id="idRace" label="Race" value="{!v.personRole.RE_Contact__r.DPM_Race__c}" onchange="{!c.raceChanged}">
+                                <aura:iteration items="{!v.raceList}" var="item">
+                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.RE_Contact__r.DPM_Race__c}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <span class="slds-form-element__label">Race</span>
+                                <div class="slds-form-element__control classFormElement">
+                                    <div class="slds-form-element__static">
+                                        {!v.personRole.RE_Contact__r.DPM_Race__c}
+                                    </div>
+                                </div>
+                            </aura:set>
+                        </aura:if>
+                        <aura:set attribute="else">
+                            <lightning:select aura:id="idRace" label="Race" value="{!v.DPMEmployee.DPM_Race__c}" onchange="{!c.raceChanged}">
+                                <aura:iteration items="{!v.raceList}" var="item">
+                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Race__c}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </aura:set>
+                    </aura:if>                    
+                </div>
+            </div>
+        </div>         
+        <div class="{!v.formType=='threeColumn'?'slds-col slds-size_1-of-1 slds-large-size_4-of-12':'slds-col slds-size_1-of-1 slds-large-size_3-of-12'}">
+            <div class="uiInput">                               
+                <form class="slds-form-element__control" autocomplete="off">
+                    <aura:if isTrue="{!v.fromEmployeeProfile}">
+                        <aura:if isTrue="{!v.blnEditable}">
+                            <lightning:input aura:id="idOtherRace" value="{!v.otherRace}" label="Other Races" type="text" disabled="{!v.personRole.RE_Contact__r.DPM_Race__c != 'Two or more races'}"/>
+                        </aura:if>
+                        <aura:set attribute="else">
+                            <lightning:input aura:id="idOtherRace" value="{!v.otherRace}" label="Other Races" type="text" disabled="{!v.DPMEmployee.DPM_Request_Type__c=='Extension' || v.DPMEmployee.DPM_Race__c != 'Two or more races'}"/>
+                        </aura:set>
+                    </aura:if>
+                </form>
+            </div>
+        </div>  
+    </aura:if>
+    
+    <div class="{!v.formType=='threeColumn'?'slds-col slds-size_1-of-1 slds-large-size_4-of-12':'slds-col slds-size_1-of-1 slds-large-size_3-of-12'}">
+        <div class="uiInput">
+            <div class="slds-form-element__control">
+                <aura:if isTrue="{!v.fromEmployeeProfile}">
+                    <aura:if isTrue="{!v.blnEditable}">
+                        <lightning:select aura:id="idEthnicity" label="Ethnicity" value="{!v.personRole.RE_Contact__r.DPM_Ethnicity__c}" onchange="{!c.ethnicityChanged}">
+                            <aura:iteration items="{!v.ethnicityList}" var="item">
+                                <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.personRole.RE_Contact__r.DPM_Ethnicity__c}"></option>
+                            </aura:iteration>
+                        </lightning:select>
+                        <aura:set attribute="else">
+                            <span class="slds-form-element__label">Ethnicity</span>
+                            <div class="slds-form-element__control classFormElement">
+                                <div class="slds-form-element__static">
+                                    {!v.personRole.RE_Contact__r.DPM_Ethnicity__c}
+                                </div>
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                    <aura:set attribute="else">
+                        <lightning:select aura:id="idEthnicity" label="Ethnicity" value="{!v.DPMEmployee.DPM_Ethnicity__c}" onchange="{!c.ethnicityChanged}">
+                            <aura:iteration items="{!v.ethnicityList}" var="item">
+                                <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.DPMEmployee.DPM_Ethnicity__c}"></option>
+                            </aura:iteration>
+                        </lightning:select>
+                    </aura:set>
+                </aura:if>
+            </div>
+        </div>
+    </div>    
+    <aura:if isTrue="{!(v.country=='Canada')}">
+        <div class="{!v.formType=='threeColumn'?'slds-col slds-size_1-of-1 slds-large-size_4-of-12':'slds-col slds-size_1-of-1 slds-large-size_3-of-12'}">
+            <div class="uiInput">                               
+                <form class="slds-form-element__control" autocomplete="off">                
+                    <aura:if isTrue="{!v.fromEmployeeProfile}">
+                        <aura:if isTrue="{!v.blnEditable}">
+                            <lightning:input aura:id="idOtherEthnicity" value="{!v.otherEthnicity}" label="Other Ethnicities" type="text" disabled="{!v.personRole.RE_Contact__r.DPM_Ethnicity__c != 'Other'}"/>
+                        </aura:if>
+                        <aura:set attribute="else">
+                            <lightning:input aura:id="idOtherEthnicity" value="{!v.otherEthnicity}" label="Other Ethnicities" type="text" disabled="{!v.DPMEmployee.DPM_Request_Type__c=='Extension' || v.DPMEmployee.DPM_Ethnicity__c != 'Other'}"/>
+                        </aura:set>
+                    </aura:if>
+                </form>
+            </div>
+        </div>    
+    </aura:if>
+</aura:component>

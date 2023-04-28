@@ -1,0 +1,111 @@
+<aura:component controller="DPM_PersonnelMasterController">    
+    <aura:attribute name="countryList" type="List" description="Stores the Country Picklist values" default="[]"/>
+    <aura:attribute name="regionList" type="List" description="Stores the Region Picklist values" default="[]"/>
+    <aura:attribute name="countrySelected" type="String" description="Stores the selected country value" default="" />
+    <aura:attribute name="regionSelected" type="String" description="Stores the selected region value" default="" />    
+    <aura:attribute name="showConfirmation" type="Boolean" description="Used to store confirmation popup" default="false" />
+    <aura:attribute name="confirmationMessage" type="String" description="Used to display confirmation message" />
+    <aura:attribute name="showWarningConfirmation" type="Boolean" description="Used to display warning alert message" default="false" />
+    <aura:attribute name="regionValue" type="List" description="Stores selected Value" default="[]" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <section role="dialog" class="slds-modal slds-fade-in-open" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <div class="slds-modal__container">                    
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>                    
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{!c.close}"
+                                      alternativeText="Close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"
+                                      size="large"/>
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                    DMS Id/Work phone/email report
+                </h2>                
+            </header>                
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <p>
+                    <div class="slds-grid slds-wrap">                       
+                        <div class="slds-col slds-size_1-of-1">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:dualListbox name="Country"
+                                                           label= "Country"
+                                                           sourceLabel="Available"
+                                                           selectedLabel="Selected"
+                                                           fieldLevelHelp="Select Countries"
+                                                           options="{!v.countryList}"
+                                                           onchange="{! c.handleCountryChange }"/>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="slds-col slds-size_1-of-1">
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:dualListbox                                     
+                                                           name="Region"
+                                                           label= "Region"
+                                                           sourceLabel="Available"
+                                                           selectedLabel="Selected"
+                                                           fieldLevelHelp="Select Region"
+                                                           options="{!v.regionList}"
+                                                           value="{!v.regionValue}"                               
+                                                           onchange="{! c.handleRegionChange }"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>    
+                </p>
+            </div>
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_brand" onclick="{!c.openConfirmationModal}">Ok</button>
+                <button class="slds-button slds-button_brand" onclick="{!c.close}">Cancel</button>                   
+            </footer>
+        </div>
+      </section>
+    <aura:if isTrue="{!v.showConfirmation}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+        aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <!-- Modal/Popup Box Header Starts here-->
+            <header class="slds-modal__header" style="background-color:lightblue">
+                <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeConfirmationModal }"
+                    alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirmation</h2>
+            </header>
+            <!--Modal/Popup Box Body Starts here-->
+            <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+                {!v.confirmationMessage}
+            </div>
+            <!--Modal/Popup Box Footer Starts here-->
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_brand" onclick="{! c.generateReport }">Confirm</button>
+                <button class="slds-button slds-button_brand" onclick="{! c.closeConfirmationModal }">Back</button>
+            </footer>
+        </div>
+    </section>
+    </aura:if> 
+    <aura:if isTrue="{!v.showWarningConfirmation}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+        aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <!-- Modal/Popup Box Header Starts here-->
+            <header class="slds-modal__header" style="background-color:palegoldenrod">
+                <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeWarningConfirmationModal }"
+                    alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Alert</h2>
+            </header>
+            <!--Modal/Popup Box Body Starts here-->
+            <div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+                Please select both the country(s) and region(s) for which the report should be run!
+            </div>
+            <!--Modal/Popup Box Footer Starts here-->
+            <footer class="slds-modal__footer">                
+                <button class="slds-button slds-button_brand" onclick="{! c.closeWarningConfirmationModal }">Ok</button>
+            </footer>
+        </div>
+    </section>
+    </aura:if>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:component>
