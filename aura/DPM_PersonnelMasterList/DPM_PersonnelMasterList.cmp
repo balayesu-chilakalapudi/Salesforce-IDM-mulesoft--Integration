@@ -1,0 +1,199 @@
+<aura:component >
+    <aura:attribute name="dpmEmployees" type="List" description="List of DPM Employees"/>
+    <aura:attribute name="existingEmployees" type="List" description="List of Existing Employees"/>
+    <aura:attribute name="mode" type="String" description="Mode of the record"/>
+    <aura:attribute name="currentEmployee" type="Map" description="Current logged in Employee"/>
+    <aura:attribute name="fromPortal" type="Boolean" default="true" description="Checks if DPM is accessed through the Portal"/>
+    <aura:attribute name="sessionSettings" type="Map" default="{}" description="Used to store the Sorting/Filtering information"/>
+    <aura:attribute name="tabName" type="String" default="" description="Used to get the tab"/>
+    <aura:attribute name="corporatePermissions" type="Map" default="{}" description="Used to store corporate permissions"/>
+   	<aura:attribute name="blnIsIncentiveProfile" type="Boolean" default="false" description="Used to check for Incentive Profile" access="global" />
+    <aura:registerEvent name="changeDPMEvent" type="c:DPM_ChangeEvt"/>
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
+    <table aura:id="idTableResults" class="slds-table slds-table_bordered slds-table_cell-buffer slds-max-medium-table_stacked">
+        <thead>
+            <tr class="slds-text-title_caps">
+                <aura:if isTrue="{!v.mode == 'new'}">
+                    <th scope="col"><div class="slds-truncate" title="First Name">First Name</div></th>
+                    <th scope="col"><div class="slds-truncate" title="Last Name">Last Name</div></th>
+                    <th scope="col"><div class="slds-truncate" title="Email">Email</div></th>
+                    <th scope="col"><div class="slds-truncate" title="New/Activation">New/Activation</div></th>
+                    <aura:if isTrue="{!v.tabName == 'Submitted'}">
+                        <th scope="col"><div class="slds-truncate" title="Status">Status</div></th>
+                    </aura:if>                    
+                    <aura:set attribute="else">
+                        <aura:if isTrue="{!v.mode == 'search'}">                            
+                            <aura:iteration items="{!v.sessionSettings.existingEmployeeColumns}" var="column">
+                                <th scope="col slds-is-sortable">
+                                    <aura:if isTrue="{!v.fromPortal}">
+                                        <a class="slds-text-link_reset classHoverArrow classInlineBlock classBottomVerticalAlign" href="javascript:void(0);" role="button" tabindex="0" data-header="{!column.name}" onclick="{!c.handleColumnClick}">
+                                            <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                                <span class="slds-truncate" title="{!column.label}">{!column.label}</span>
+                                                <div class="classFixedWidth slds-icon_container slds-icon-utility-arrowdown slds-p-horizontal_x-small">
+                                                    <aura:if isTrue="{!v.sessionSettings.sortBy == column.name}">
+                                                        <span class="{!v.sessionSettings.sortDirection == 'ASC' ? '' : 'slds-hide'}"><lightning:icon iconName="utility:arrowdown" size="small"/></span>
+                                                        <span class="{!v.sessionSettings.sortDirection == 'DESC' ? '' : 'slds-hide'}"><lightning:icon iconName="utility:arrowup" size="small"/></span>
+                                                    </aura:if>                                             
+                                                </div>
+                                            </div>
+                                        </a> 
+                                        <aura:if isTrue="{!column.name == 'Job_Position'}">
+                                            <a data-header="{!column.name}" class="{!v.sessionSettings.filterBy==column.name?'classInlineBlock classFilterIcon classBottomVerticalAlign':'classInlineBlock classBottomVerticalAlign'}" onclick="{!c.handleFilterClick}"><lightning:icon iconName="utility:filterList" size="small"/></a>
+                                            <aura:if isTrue="{!column.filter == 'show'}">
+                                                <div class="slds-box slds-is-absolute classFilter slds-grid slds-gutters">
+                                                    <div>
+                                                        <lightning:input variant="label-hidden" class="classFontWeightNormal classBottomVerticalAlign classInlineBlock" type="text" value="{!v.sessionSettings.filterString}" placeholder="Enter filter text"></lightning:input>
+                                                    </div>
+                                                    <div data-header="{!column.name}">
+                                                        <lightning:buttonIcon class="slds-button_brand-reverse classIcon" iconName="utility:search"  variant="border-filled" alternativeText="Filter" title="Filter" onclick="{!c.applyFilter}"/>
+                                                    </div>
+                                                </div>                                        
+                                            </aura:if> 
+                                            <aura:if isTrue="{!and(column.name == v.sessionSettings.filterBy,v.sessionSettings.filterString != '')}">
+                                                <div class="classFontWeightNormal classItalics">Filtered by : "{!v.sessionSettings.filterString}"</div>
+                                            </aura:if>   
+                                                                                   
+                                    </aura:if>   
+                                        <aura:set attribute="else">
+                                            <a class="slds-text-link_reset classHoverArrow classInlineBlock classBottomVerticalAlign" href="javascript:void(0);" role="button" tabindex="0" data-header="{!column.name}" onclick="{!c.handleColumnClick}">
+                                                <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                                    <span class="slds-truncate" title="{!column.label}">{!column.label}</span>
+                                                    <div class="classFixedWidth slds-icon_container slds-icon-utility-arrowdown slds-p-horizontal_x-small">
+                                                        <aura:if isTrue="{!v.sessionSettings.sortBy == column.name}">
+                                                            <span class="{!v.sessionSettings.sortDirection == 'ASC' ? '' : 'slds-hide'}"><lightning:icon iconName="utility:arrowdown" size="small"/></span>
+                                                            <span class="{!v.sessionSettings.sortDirection == 'DESC' ? '' : 'slds-hide'}"><lightning:icon iconName="utility:arrowup" size="small"/></span>
+                                                        </aura:if>                                             
+                                                    </div>
+                                                </div>
+                                            </a> 
+                                        </aura:set>               
+                                    </aura:if>  
+                                </th>  
+                            </aura:iteration> 
+                            <!--  My Store Emaployee columns  -->
+                                    <aura:set attribute="else">
+                                        
+                                <aura:iteration items="{!v.sessionSettings.existingEmployeeColumns}" var="column">
+                                    <th scope="col slds-is-sortable" class="{!and(column.name == v.sessionSettings.filterBy,v.sessionSettings.filterString != '') ? 'classLowPadding' : ''}">
+                                        <a class="slds-text-link_reset classHoverArrow classInlineBlock classBottomVerticalAlign" href="javascript:void(0);" role="button" tabindex="0" data-header="{!column.name}" onclick="{!c.handleColumnClick}">
+                                            <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                                <span class="slds-truncate" title="{!column.label}">{!column.label}</span>
+                                                <div class="classFixedWidth slds-icon_container slds-icon-utility-arrowdown slds-p-horizontal_x-small">
+                                                    <aura:if isTrue="{!v.sessionSettings.sortBy == column.name}">
+                                                        <span class="{!v.sessionSettings.sortDirection == 'ASC' ? '' : 'slds-hide'}"><lightning:icon iconName="utility:arrowdown" size="small"/></span>
+                                                        <span class="{!v.sessionSettings.sortDirection == 'DESC' ? '' : 'slds-hide'}"><lightning:icon iconName="utility:arrowup" size="small"/></span>
+                                                    </aura:if>                                             
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <aura:if isTrue="{!column.name == 'Job_Position'}">
+                                            <a data-header="{!column.name}" class="{!v.sessionSettings.filterBy==column.name?'classInlineBlock classFilterIcon classBottomVerticalAlign':'classInlineBlock classBottomVerticalAlign'}" onclick="{!c.handleFilterClick}"><lightning:icon iconName="utility:filterList" size="small"/></a>
+                                            <aura:if isTrue="{!column.filter == 'show'}">
+                                                <div class="slds-box slds-is-absolute classFilter slds-grid slds-gutters">
+                                                    <div>
+                                                        <lightning:input variant="label-hidden" class="classFontWeightNormal classBottomVerticalAlign classInlineBlock" type="text" value="{!v.sessionSettings.filterString}" placeholder="Enter filter text"></lightning:input>
+                                                    </div>
+                                                    <div data-header="{!column.name}">
+                                                        <lightning:buttonIcon class="slds-button_brand-reverse classIcon" iconName="utility:search"  variant="border-filled" alternativeText="Filter" title="Filter" onclick="{!c.applyFilter}"/>
+                                                    </div>
+                                                </div>                                        
+                                            </aura:if> 
+                                            <aura:if isTrue="{!and(column.name == v.sessionSettings.filterBy,v.sessionSettings.filterString != '')}">
+                                                <div class="classFontWeightNormal classItalics">Filtered by : "{!v.sessionSettings.filterString}"</div>
+                                            </aura:if>
+                                        </aura:if>
+                                    </th>  
+                                </aura:iteration>
+                                    </aura:set>   
+                                             
+                        </aura:if>  
+                                           
+                    </aura:set>
+                </aura:if>                
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <aura:if isTrue="{!v.mode == 'existing'}">
+                <aura:iteration items="{!v.existingEmployees}" var="existingEmployee" indexVar="index">
+                    <aura:if isTrue="{!existingEmployee.Id == v.currentEmployee.Id}">
+                        <c:DPM_PersonnelMasterListRow existingEmployee="{!existingEmployee}" index="{!index}" mode="existing" disabled="true" fromPortal="{!v.fromPortal}" corporatePermissions="{!v.corporatePermissions}"/>
+                        <aura:set attribute="else">
+                            <c:DPM_PersonnelMasterListRow existingEmployee="{!existingEmployee}" index="{!index}" mode="existing" fromPortal="{!v.fromPortal}" corporatePermissions="{!v.corporatePermissions}"/>
+                        </aura:set>
+                    </aura:if>                    
+                </aura:iteration>                
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!v.mode == 'search'}">                       
+                            <aura:if isTrue="{!v.fromPortal}">
+                                 <aura:iteration items="{!v.existingEmployees}" var="position" indexVar="index">
+                                <tr>
+                                    <td>
+                                        <div class="slds-truncate" title="Name">
+                                        <a href="{!'./employee-profile?id='+position.DPM_Person_Role__c}">
+                                        {!position.DPM_Person_Role__r.RE_Contact__r.LastName}, 
+                                        <aura:if isTrue="{!position.DPM_Person_Role__r.RE_Contact__r.DPM_Preferred_First_Name__c != null}">
+                                            {!position.DPM_Person_Role__r.RE_Contact__r.DPM_Preferred_First_Name__c}
+                                            <aura:set attribute="else">
+                                                {!position.DPM_Person_Role__r.RE_Contact__r.FirstName}
+                                            </aura:set>
+                                        </aura:if>
+                                        &nbsp;{!position.DPM_Person_Role__r.RE_Contact__r.Suffix}
+                                    </a>
+                                    </div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title="{!position.DPM_Person_Role__r.RE_Account__r.Name}">
+                                            {!position.DPM_Person_Role__r.RE_Account__r.Name} - {!position.DPM_Person_Role__r.RE_Account__r.Retailer__c}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title="{!position.DPM_Position_Title__c}">
+                                            {!position.DPM_Position_Title__c}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title="Active/Terminated">                            
+                                            {!position.DPM_Person_Role__r.RE_Psn_Active__c ? 'Active':'Terminated'}
+                                        </div>
+                                    </td>
+                                    <td> 
+                                        <div class="slds-truncate" title="{!position.DPM_Position_Start_Date__c}">
+                                            <lightning:formattedDateTime timeZone="UTC" value="{!position.DPM_Position_Start_Date__c}" year="numeric" month="2-digit" day="2-digit"/>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <aura:if isTrue="{!position.DPM_Work_Email__c=='Action Required'}">
+                                            <div class="slds-truncate" title="Action required" style="border:1px solid red">
+                                                Action required
+                                            </div>
+                                            <aura:set attribute="else">
+                                               {!position.DPM_Work_Email__c}
+                                            </aura:set>
+                                        </aura:if>                                        
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title="{!position.DPM_Person_Role__r.RE_Contact__r.MailingCountry}">
+                                            {!position.DPM_Person_Role__r.RE_Contact__r.MailingCountry}
+                                        </div>
+                                    </td>
+                                </tr>    
+                                      </aura:iteration>
+                                <aura:set attribute="else">
+                                     <aura:iteration items="{!v.existingEmployees}" var="existingEmployee" indexVar="index">
+                                    	<c:DPM_PersonnelMasterListRow existingEmployee="{!existingEmployee}" index="{!index}" mode="search" fromPortal="{!v.fromPortal}" corporatePermissions="{!v.corporatePermissions}" blnIsIncentiveProfile="{!v.blnIsIncentiveProfile}" />
+                                    </aura:iteration>
+                                </aura:set>                                    
+                            </aura:if>
+                        
+                        <aura:set attribute="else">
+                            <aura:iteration items="{!v.dpmEmployees}" var="dpmEmployee" indexVar="index">
+                                <c:DPM_PersonnelMasterListRow dpmEmployee="{!dpmEmployee}" index="{!index}" mode="new" fromPortal="{!v.fromPortal}" tabName="Submitted" corporatePermissions="{!v.corporatePermissions}"  />
+                            </aura:iteration>
+                        </aura:set>
+                    </aura:if>                    
+                </aura:set>
+            </aura:if>
+        </tbody>
+    </table>
+</aura:component>

@@ -1,0 +1,5 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:appHostable" access="global" >
+    <div class="classDPMCorp slds-p-around_small">
+        <c:DPM_PersonnelMasterCmp fromPortal="false"/>
+    </div>
+</aura:component>

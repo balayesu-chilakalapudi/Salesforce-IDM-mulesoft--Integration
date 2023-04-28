@@ -1,0 +1,202 @@
+<aura:component implements="forceCommunity:availableForAllPageTypes,lightning:isUrlAddressable" access="global" controller="DPM_PersonnelMasterController">
+    <aura:attribute name="mapDPMEmployee" type="Map" description="Map of DPM Employees" />
+    <aura:attribute name="IsFromReport" type="Boolean" default ="false" description="To Check if this Cmp is open from W9 Report" access="global"/>
+    <aura:attribute name="existingEmployeeList" type="List" description="List of Existing Employee" />
+    <aura:attribute name="fromPortal" type="Boolean" default="true" description="Checks if DPM is accessed through the Portal"/>
+    <aura:attribute name="currentEmployee" type="Map" description="Current logged in Employee"/>
+    <aura:attribute name="hasAccess" type="Boolean" default="false" description="Used to check if the user has access to DPM"/>
+    <aura:attribute name="showSearchResults" type="Boolean" default="false" description="Search Results tab is shown when search is done"/>
+    <aura:attribute name="showEmployeeCreationStatusSearchResults" type="Boolean" default="false" description="Search Results tab is shown when search is done"/>
+    <aura:attribute name="errorMessage" type="String" default="" description="Used to show error message"/>
+    <aura:attribute name="totalCount" type="Integer" default="0" description="Total Existing Employees"/>
+    <aura:attribute name="searchFields" type="Map" default="{}" description="Used to store the search field and value map"/>
+    <aura:attribute name="retailerAdminSearchFields" type="Map" default="{}" description="Used to store the search field and value map"/>
+    <aura:attribute name="blnIsIncentiveProfile" type="Boolean" default="false" description="Used to check for Incentive Profile" access="global" />
+    <aura:attribute name="retailerAdminSessionSettings" type="Map" default="{
+                                                                            'existingEmployeeColumns':
+                                                                            [
+                                                                            {'label':'Name','name':'Name'},
+                                                                            {'label':'Primary Job Position','name':'Job_Position'},
+                                                                            {'label':'Main Email','name':'Email'},
+                                                                            {'label':'Hire Date','name':'Hire_Date'},
+                                                                            {'label':'Retailer Admin','name':'Admin'},
+                                                                            {'label':'Owner','name':'Owner'},
+                                                                            {'label':'Owner Title','name':'Owner_Title'}
+                                                                            ],
+                                                                            'sortBy':'Name',
+                                                                            'sortDirection':'ASC',
+                                                                            'filterBy':'',
+                                                                            'filterString':'',
+                                                                            'showViewMore':false,
+                                                                            'intOffset':0,
+                                                                            'intLimit':0,
+                                                                            'skipOffset':false
+                                                                            }" description="Used to store the Sorting/Filtering information"/>
+    
+    <aura:attribute name="selectedTab" type="String" description="Used to set selected tab"/>
+    <aura:attribute name="corporatePermissions" type="Map" default="{}" description="Used to store corporate permissions"/>
+    <aura:attribute name="appLinks" type="List" default="[]" />
+    <aura:attribute name="sessionSettings" type="Map" default="{
+                                                               'existingEmployeeColumns':
+                                                               [
+                                                               {'label':'Name','name':'Name'},
+                                                               {'label':'Primary Job Position','name':'Job_Position'},
+                                                               {'label':'Main Email','name':'Email'},
+                                                               {'label':'Hire Date','name':'Hire_Date'},
+                                                               {'label':'Retailer Admin','name':'Admin'},
+                                                               {'label':'Owner','name':'Owner'},
+                                                               {'label':'Owner Title','name':'Owner_Title'}
+                                                               ],
+                                                               'sortBy':'Name',
+                                                               'sortDirection':'ASC',
+                                                               'filterBy':'',
+                                                               'filterString':'',
+                                                               'showViewMore':false,
+                                                               'showViewMoreDPMEmployees':false,
+                                                               'intOffset':0,
+                                                               'intLimit':0,
+                                                               'skipOffset':false
+                                                               }" description="Used to store the Sorting/Filtering information"/>
+    <aura:attribute name="RetailerId" type="string" description="Retailer Id used to display on search results tab" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="refreshDPMEvent" event="c:DPM_PersonnelMasterRefreshEvt" action="{!c.doInit}"/>
+    <aura:handler name="changeDPMEvent" event="c:DPM_ChangeEvt" action="{!c.handleSessionSettingChange}"/>
+    <aura:handler name="existingEmpCheckEvent" event="c:DPM_ExistingEmpCheckEvent" action="{!c.handleUserInput}"/>
+    <aura:handler name="nextModalEvent" event="c:DPM_ReactivationModalEvent" action="{!c.handleNextEvent}"/>
+    <aura:handler name="reactivationDPMEvent" event="c:DPM_ReactivationEntryFromDupCheck" action="{!c.handleReactivationEvent}"/>
+    <aura:handler name="searchEvent" event="c:DPM_SearchEvent" action="{!c.handleSearchEvent}"/> 
+    <aura:handler name="retailerAdminSearchEvent" event="c:DPM_RetailerAdminSearchEvent" action="{!c.handleRetailerAdminSearchEvent}"/>   
+    <aura:handler event="lightning:openFiles" action="{! c.handleOpenFiles }" />
+    
+
+    <aura:if isTrue="{!v.IsFromReport}">
+        <c:DPM_HomePageCmp/>
+    </aura:if>
+    <div aura:id="changeIt" class="slds-box slds-theme_default classDPMCorp slds-p-around_small">
+        <div class="slds-is-relative">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" aura:id="idSpinner" class="slds-hide"/>
+            <div class="slds-p-vertical_large">            
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                        <h2>Digital Personnel Management</h2>   
+                        <ul class="slds-list_horizontal slds-has-dividers_left slds-has-block-links">
+                            <li class="slds-item slds-p-vertical_small"><a href="" target="_blank" onclick="{!c.openSingleFile}">User Guide</a></li>
+                            <aura:iteration items="{!v.appLinks}" var="link">
+                                <aura:if isTrue="{!link.URL__c}">
+                                    <li class="slds-item slds-p-vertical_small"><a href="{!link.URL__c}" target="_blank">{!link.MasterLabel}</a></li>
+                                    <aura:set attribute="else">
+                                        <li class="slds-item slds-p-vertical_small">{!link.MasterLabel}</li>
+                                    </aura:set>
+                                </aura:if>
+                            </aura:iteration>
+                        </ul>
+                    </div>
+                    <aura:if isTrue="{!!v.IsFromReport}">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_2-of-3">
+                            <aura:if isTrue="{!or(v.hasAccess,!v.fromPortal)}">
+                                <div class="slds-text-align_right">
+                                    <aura:if isTrue="{!!v.fromPortal}">
+                                        <aura:if isTrue="{!v.showSearchResults}">
+                                            <lightning:button class="btnCSS" variant="brand" label="Download" onclick="{!c.downloadCorpSearchResults}" title="Download"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.showEmployeeCreationStatusSearchResults}">
+                                            <lightning:button class="btnCSS" variant="brand" label="Download" onclick="{!c.downloadEmployeeStatusSearchResults}" title="Download"/>
+                                        </aura:if>
+                                        <lightning:button class="btnCSS" variant="brand" label="Search" onclick="{!c.searchEmployee}" title="Search"/>
+                                        
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.fromPortal || v.corporatePermissions.editPermission}">
+                                        <aura:if isTrue="{!and(v.hasAccess,v.fromPortal)}">
+                                            <lightning:button class="btnCSS" variant="brand" label="Search >" onclick="{!c.retailerAdminSearch}" title="Search"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!!v.corporatePermissions.hideCreateEmployee}">
+                                            <lightning:button class="btnCSS" variant="brand" label="Create A New Employee >" onclick="{!c.createNewRetailerEmployee}" title="Create A New Employee"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!!v.corporatePermissions.hideReactivateEmployee}">
+                                            <lightning:button class="btnCSS" variant="brand" label="Reactivate or Extend an Employee >" onclick="{!c.activateRetailerEmployee}"
+                                                              title="Use the Activate button when you want to reactivate a returning employee who previously worked at a Volvo store or corporation, or when you create in your store an employee who is already active and working in other Volvo stores"/>
+                                        </aura:if>
+                                        
+                                    </aura:if>
+                                    
+                                    <aura:if isTrue="{!!v.fromPortal &amp;&amp; !(v.corporatePermissions.viewCDSIDMonitor || v.corporatePermissions.manageSuppliers || v.corporatePermissions.accessBuySell  || v.corporatePermissions.viewW9 &amp;&amp; (v.corporatePermissions.Viewreport || v.corporatePermissions.viewW9))}">
+                                            <lightning:button class="btnCSS" variant="brand" label="DMS Id/Work phone/email report" onclick="{!c.viewDMSReportModal}" title="DMS Id/Work phone/email report"/>
+                                        </aura:if>
+                                    
+                                    <aura:if isTrue="{!!v.fromPortal &amp;&amp; (v.corporatePermissions.viewCDSIDMonitor || v.corporatePermissions.manageSuppliers || v.corporatePermissions.accessBuySell  || v.corporatePermissions.viewW9 &amp;&amp; (v.corporatePermissions.Viewreport || v.corporatePermissions.viewW9))}">
+                                        <lightning:buttonMenu class="slds-box slds-box_xx-small buttonMenuCSS" menuAlignment="auto" variant="brand" alternativeText="Show menu" onselect="{! c.buttonSelect }">
+                                            <lightning:menuItem class="menuItemCSS" label="DMS Id/Work phone/email report" value="item5" title="DMS Id/Work phone/email report" />    
+                                            <aura:if isTrue="{!v.corporatePermissions.manageSuppliers}">
+                                                <lightning:menuItem class="menuItemCSS" label="Create A New Supplier Employee" value="item1" title="Create A New Employee For Supplier"/>
+                                            </aura:if>
+											<aura:if isTrue="{!or(v.corporatePermissions.viewW9,and(v.corporatePermissions.viewW9,v.corporatePermissions.Viewreport))}">
+                                                <lightning:menuItem class="menuItemCSS" label="W9 Report" value="item4" title="open W9 Report"/>
+                                            </aura:if>
+                                            <aura:if isTrue="{!!v.corporatePermissions.manageSuppliers &amp;&amp; v.corporatePermissions.accessBuySell}">
+                                                <lightning:menuItem class="menuItemCSS" label="Buy/Sell" value="item2" title="Used for the Buy/Sell process"/>
+                                            </aura:if>
+                                            <aura:if isTrue="{!v.corporatePermissions.viewCDSIDMonitor}">
+                                                <lightning:menuItem class="menuItemCSS" label="DPM Metrics" value="item3" title="DPM Metrics"/>
+                                            </aura:if>
+                                            <lightning:menuItem class="menuItemCSS" label="Corporate DPM users' access" value="item_cdua" title="Corporate DPM users' access"/>
+                                           
+                                        </lightning:buttonMenu>
+                                    </aura:if>
+                                </div>
+                            </aura:if>
+                        </div>
+                    </aura:if>
+                </div>
+            </div>
+            <aura:if isTrue="{!or(v.hasAccess,!v.fromPortal)}">
+                <lightning:tabset selectedTabId="{!v.selectedTab}">
+                    <aura:if isTrue="{!v.fromPortal}">
+                        <lightning:tab label="My Store's Employees" aura:id="idExistingEmp">   
+                            <c:DPM_PersonnelMasterList sessionSettings="{!v.sessionSettings}" existingEmployees="{!v.existingEmployeeList}" mode="existing" currentEmployee="{!v.currentEmployee}" fromPortal="{!v.fromPortal}"/>
+                            <aura:if isTrue="{!v.sessionSettings.showViewMore}">
+                                <div class="slds-align_absolute-center slds-m-top_medium">
+                                    <lightning:button variant="brand" label="View More" onclick="{!c.viewMore}" class="view-button"/>
+                                </div>          
+                            </aura:if>
+                        </lightning:tab>
+                    </aura:if>   
+                    
+                    <aura:if isTrue="{!!v.corporatePermissions.hideInitiatedRequestsTab}">
+                        <lightning:tab label="Initiated Requests" aura:id="idInitiated">                
+                            <c:DPM_PersonnelMasterList dpmEmployees="{!v.mapDPMEmployee.initiated}" mode="new" fromPortal="{!v.fromPortal}" corporatePermissions="{!v.corporatePermissions}"/>
+                        </lightning:tab>
+                    </aura:if>
+                    <aura:if isTrue="{!!v.corporatePermissions.hideSubmitedRequestsTab}">
+                        <lightning:tab label="Employee Submitted Requests" aura:id="idSubmitted">                
+                            <c:DPM_PersonnelMasterList dpmEmployees="{!v.mapDPMEmployee.submitted}" mode="new" fromPortal="{!v.fromPortal}" tabName="Submitted" corporatePermissions="{!v.corporatePermissions}"/>
+                        </lightning:tab> 
+                    </aura:if>
+                    <aura:if isTrue="{!!v.fromPortal}">
+                        <aura:if isTrue="{!v.showSearchResults}">
+                            <lightning:tab label="Search Results" aura:id="idSearchResults" id="idSearchResults">   
+                                <c:DPM_PersonnelMasterList aura:id="idPMList" sessionSettings="{!v.sessionSettings}" existingEmployees="{!v.existingEmployeeList}" mode="search" fromPortal="{!v.fromPortal}" corporatePermissions="{!v.corporatePermissions}" blnIsIncentiveProfile="{!v.blnIsIncentiveProfile}" />
+                                <aura:if isTrue="{!v.sessionSettings.showViewMore}">
+                                    <div class="slds-align_absolute-center slds-m-top_medium">
+                                        <lightning:button variant="brand" label="View More" onclick="{!c.viewMore}" class="view-button"/>
+                                    </div>          
+                                </aura:if>
+                            </lightning:tab>
+                        </aura:if>
+                        <aura:if isTrue="{!v.showEmployeeCreationStatusSearchResults}">
+                            <lightning:tab label="{!v.RetailerId}" aura:id="idEmployeeCreationStatusSearchResults" id="idEmployeeCreationStatusSearchResults">   
+                                <c:DPM_EmployeeCreationStatusList RetailerId="{!v.RetailerId}" aura:id="idEmployeeCreationStatus"  sessionSettings="{!v.sessionSettings}" existingEmployees="{!v.existingEmployeeList}" fromPortal="{!v.fromPortal}" />
+                            	<aura:if isTrue="{!v.sessionSettings.showViewMoreDPMEmployees}">
+                                    <div class="slds-align_absolute-center slds-m-top_medium">
+                                        <lightning:button variant="brand" label="View More" onclick="{!c.viewMoreDPMEmployees}" class="view-button"/>
+                                    </div>          
+                                </aura:if>
+                            </lightning:tab>
+                        </aura:if>
+                    </aura:if> 
+                </lightning:tabset>
+            </aura:if>
+        </div>
+    </div>
+    <div>{!v.body}</div>
+</aura:component>

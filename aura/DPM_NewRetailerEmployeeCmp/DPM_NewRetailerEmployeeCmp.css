@@ -1,0 +1,9 @@
+.THIS .classFullWidth{
+    width:100%;
+}
+
+.THIS .popover {
+    position: absolute;
+    left: 14%;
+    bottom: 65%;
+}

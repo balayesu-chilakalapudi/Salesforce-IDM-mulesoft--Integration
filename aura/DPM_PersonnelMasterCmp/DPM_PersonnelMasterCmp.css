@@ -1,0 +1,73 @@
+.THIS .slds-modal__header {
+    padding: 1rem .5rem;
+}
+
+.THIS .slds-modal__container {
+    margin: 0 1rem;
+    padding: 2rem 0;
+}
+
+.THIS .slds-col {
+    padding: .5rem;
+}
+
+.THIS hr {
+    margin: .5rem;
+}
+
+.THIS h1 {
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 32px;
+    color: #161618;
+}
+
+.THIS h2 {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 26px;
+    color: #161618;
+}
+
+.THIS .info-icon svg {
+    fill: #007bcd;
+}
+
+.THIS .slds-modal__container {
+    margin: auto;
+    
+}
+.THIS .btnCSS{
+    color: white !important;
+    background-color: #007bcd !important;
+}
+.THIS .slds-dropdown__item>a:hover, .THIS .slds-dropdown__item>a:focus{
+	color: black;
+    /*background-color: #007bcd;*/
+    background-color: white;
+}
+.THIS .slds-dropdown__item>a{
+    color: white;
+}
+.THIS .menuItemCSS{
+    /*color: white !important;*/
+    background-color: #007bcd !important;
+    /*border: 1px solid #007bcd;*/
+  	border-radius: 1;
+}
+.THIS .buttonMenuCSS{
+    border: 1px solid #007bcd;
+  	border-radius: 1;
+}
+.THIS .classDPMCorp {
+        background-color : white !important;
+    }
+    
+    .THIS .classDPMCorp .slds-button_brand-reverse  {
+        padding: 0 40px;
+        background-color: #007bcd; 
+        border: 1px solid #007bcd;
+        border-radius: 0;
+        color: #fff;
+        line-height: 42px;
+    }

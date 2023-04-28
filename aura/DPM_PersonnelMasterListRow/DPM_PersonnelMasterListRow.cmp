@@ -1,0 +1,217 @@
+<aura:component implements="flexipage:availableForAllPageTypes">
+    <aura:attribute name="dpmEmployee" type="Map" />
+    <aura:attribute name="existingEmployee" type="Object" />
+    <aura:attribute name="index" type="Integer" />
+    <aura:attribute name="mode" type="String" description="Mode of the record"/>
+    <aura:attribute name="disabled" type="Boolean" description="Show the row in disabled mode" default="false"/>
+    <aura:attribute name="fromPortal" type="Boolean" default="true" description="Checks if DPM is accessed through the Portal"/>
+    <aura:attribute name="tabName" type="String" default="" description="Used to get the tab"/>
+    <aura:attribute name="corporatePermissions" type="Map" default="{}" description="Used to store corporate permissions"/>
+    <aura:attribute name="blnIsIncentiveProfile" type="Boolean" default="false" description="Used to check for Incentive Profile" access="global" />
+    
+    <aura:if isTrue="{!v.mode == 'existing'}">
+        <tr class="{!v.disabled?'classGrey':''}">
+            <td>
+                <div class="slds-truncate" title="Name">
+                    <aura:if isTrue="{!v.disabled}">
+                        <div>{!v.existingEmployee.RE_Contact__r.LastName}, {!v.existingEmployee.RE_Contact__r.FirstName}&nbsp;{!v.existingEmployee.RE_Contact__r.Suffix}</div>
+                        <aura:set attribute="else">
+                            <a href="{!'./employee-profile?id='+v.existingEmployee.Id}">
+                                {!v.existingEmployee.RE_Contact__r.LastName}, 
+                                <aura:if isTrue="{!v.existingEmployee.RE_Contact__r.DPM_Preferred_First_Name__c != null}">
+                                    {!v.existingEmployee.RE_Contact__r.DPM_Preferred_First_Name__c}
+                                    <aura:set attribute="else">
+                                        {!v.existingEmployee.RE_Contact__r.FirstName}
+                                    </aura:set>
+                                </aura:if>
+                                &nbsp;{!v.existingEmployee.RE_Contact__r.Suffix}
+                            </a>
+                        </aura:set>
+                    </aura:if>                    
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate" title="Primary Job Position">
+                    {!v.existingEmployee.RE_Employee_Position__c}
+                </div>
+            </td> 
+            <td>
+                <div class="slds-truncate" title="Main Email">
+                    {!v.existingEmployee.RE_Contact__r.Email}
+                </div>
+            </td> 
+            <td>
+                <div class="slds-truncate" title="Hire Date">
+                    <lightning:formattedDateTime timeZone="UTC" value="{!v.existingEmployee.RE_Psn_Active_Date__c}" year="numeric" month="2-digit" day="2-digit"/>
+                </div>
+            </td> 
+            <td>
+                <div class="slds-truncate" title="Retailer Admin">
+                    <lightning:input aura:id="idRetailerAdmin" disabled="true" type="checkbox" checked="{!v.existingEmployee.RE_IsAdmin__c}"/>
+                </div>
+            </td> 
+            <td>
+                <div class="slds-truncate" title="Owner">
+                    <lightning:input aura:id="idOwner" disabled="true" type="checkbox" checked="{!v.existingEmployee.DPM_Owner__c}"/>
+                </div>
+            </td> 
+            <td>
+                <div class="slds-truncate" title="Owner Title">
+                    {!v.existingEmployee.DPM_Owner_Title__c}
+                </div>
+            </td> 
+        </tr>  
+        <aura:set attribute="else">
+            <aura:if isTrue="{!v.mode == 'search'}">
+                <tr>
+                    <td>
+                        <div class="slds-truncate" title="Name">
+                             <aura:if isTrue="{!!v.fromPortal}">
+                            <a onclick="{!c.searchRecordClicked}">
+                                {!v.existingEmployee.RE_Contact__r.LastName}, 
+                                <aura:if isTrue="{!v.existingEmployee.RE_Contact__r.DPM_Preferred_First_Name__c != null}">
+                                    {!v.existingEmployee.RE_Contact__r.DPM_Preferred_First_Name__c}
+                                    <aura:set attribute="else">
+                                        {!v.existingEmployee.RE_Contact__r.FirstName}
+                                    </aura:set>
+                                </aura:if>
+                                &nbsp;{!v.existingEmployee.RE_Contact__r.Suffix}
+                            </a>
+                                  <aura:set attribute="else">
+                                <a href="{!'./employee-profile?id='+v.existingEmployee.Id}">
+                                    {!v.existingEmployee.RE_Contact__r.LastName}, 
+                                    <aura:if isTrue="{!v.existingEmployee.RE_Contact__r.DPM_Preferred_First_Name__c != null}">
+                                        {!v.existingEmployee.RE_Contact__r.DPM_Preferred_First_Name__c}
+                                        <aura:set attribute="else">
+                                            {!v.existingEmployee.RE_Contact__r.FirstName}
+                                        </aura:set>
+                                    </aura:if>
+                                    &nbsp;{!v.existingEmployee.RE_Contact__r.Suffix}
+                                </a>
+                            </aura:set>
+                        </aura:if>
+                        </div>
+                    </td>                    	
+                    <td>	
+                        <div class="slds-truncate" title="{!v.existingEmployee.RE_Contact__r.PsnId__c}">	
+                            {!v.existingEmployee.RE_Contact__r.PsnId__c}	
+                        </div>	
+                    </td>
+                    <td>
+                        <div class="slds-truncate" title="{!v.existingEmployee.RE_Account__r.Name}">
+                            {!v.existingEmployee.RE_Account__r.Name} - {!v.existingEmployee.RE_Account__r.Retailer__c}
+                        </div>
+                    </td>
+                    <td>
+                         <aura:if isTrue="{!!v.blnIsIncentiveProfile}">
+                            <div class="slds-truncate" title="{!v.existingEmployee.RE_Employee_Position__c}">
+                                {!v.existingEmployee.RE_Employee_Position__c} 
+                            </div>
+                            <aura:set attribute="else">
+                                <div class="slds-truncate" title="{!v.existingEmployee.RE_Contact__r.DPM_SSN__c}">
+                                    {!v.existingEmployee.RE_Contact__r.DPM_SSNLastFour}
+                                </div>
+                            </aura:set>
+                        </aura:if>                        
+                    </td>
+                    <td>
+                        <div class="slds-truncate" title="Active/Terminated">                            
+                            {!v.existingEmployee.RE_Psn_Active__c ?'Active':'Terminated'}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="slds-truncate" title="{!v.existingEmployee.RE_Psn_Active_Date__c}">
+                            <lightning:formattedDateTime timeZone="UTC" value="{!v.existingEmployee.RE_Psn_Active_Date__c}" year="numeric" month="2-digit" day="2-digit"/>
+                        </div>
+                    </td> 
+                    <td>
+                        <aura:if isTrue="{!!v.blnIsIncentiveProfile}">
+                            <div class="slds-truncate" title="{!v.existingEmployee.RE_Contact__r.Cds_Id__c}">
+                                {!v.existingEmployee.RE_Contact__r.Cds_Id__c}
+                            </div>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!OR(v.corporatePermissions.viewW9,v.corporatePermissions.viewW9ForFireFighter)}">
+                                    <div class="slds-truncate" title="W9 Flag">
+                                        {!v.existingEmployee.RE_Contact__r.DPM_W9_Flag__c}
+                                    </div> 
+                                </aura:if>
+                            </aura:set>
+                        </aura:if> 
+                    </td> 
+                    <td>
+                        <aura:if isTrue="{!!v.blnIsIncentiveProfile}">
+                            <div class="slds-truncate" title="{!v.existingEmployee.RE_IsAdmin__c}">
+                                <lightning:input type="checkbox" checked="{!v.existingEmployee.RE_IsAdmin__c}" disabled="true" />
+                            </div>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!OR(v.corporatePermissions.viewW9,v.corporatePermissions.viewW9ForFireFighter)}">
+                                    <div class="slds-truncate" title="W9 Date">
+                                        <lightning:formattedDateTime timeZone="UTC" value="{!v.existingEmployee.RE_Contact__r.DPM_W9_Date__c}" year="numeric" month="2-digit" day="2-digit"/>
+                                    </div>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                    </td>
+                    <td>
+                        <aura:if isTrue="{!!v.blnIsIncentiveProfile}">
+                            <div class="slds-truncate" title="{!v.existingEmployee.DPM_Owner__c}">
+                                <lightning:input type="checkbox" checked="{!v.existingEmployee.DPM_Owner__c}" disabled="true" />
+                            </div>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!OR(v.corporatePermissions.viewW9,v.corporatePermissions.viewW9ForFireFighter)}">
+                                    <div class="slds-truncate" title="W9 Reason">
+                                        {!v.existingEmployee.RE_Contact__r.DPM_W9_Reason__c}
+                                    </div>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                    </td> 
+                    <aura:if isTrue="{!!v.blnIsIncentiveProfile}">
+                        <td>
+                            <div class="slds-truncate" title="{!v.existingEmployee.RE_Contact__r.MailingCountry}">
+                                {!v.existingEmployee.RE_Contact__r.MailingCountry}
+                            </div>
+                        </td>
+                    </aura:if>
+                </tr>                
+                <aura:set attribute="else">
+                    <tr onclick="{!c.openRecord}">
+                        <td>
+                            <div class="slds-truncate" title="{!v.dpmEmployee.DPM_Legal_First_Name__c}">
+                                {!v.dpmEmployee.DPM_Legal_First_Name__c}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" title="{!v.dpmEmployee.DPM_Last_Name__c}">
+                                {!v.dpmEmployee.DPM_Last_Name__c}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="slds-truncate" title="{!v.dpmEmployee.DPM_Email__c}">
+                                {!v.dpmEmployee.DPM_Email__c}
+                            </div>
+                        </td>    
+                        <td>
+                            <div class="slds-truncate" title="{!v.dpmEmployee.DPM_Request_Type__c}">
+                                {!(v.dpmEmployee.DPM_Request_Type__c!='New' &amp;&amp; v.dpmEmployee.DPM_Request_Type__c!='')?'Activation':'New'}
+                            </div>
+                        </td> 
+                        <aura:if isTrue="{!v.tabName == 'Submitted'}">
+                            <td>
+                                <div class="slds-truncate">
+                                    <aura:if isTrue="{!v.dpmEmployee.DPM_Status__c=='Pending Corporate Approval'}">
+                                        <ui:outputText value="{!v.dpmEmployee.DPM_Status__c}" title="This profile is under review for extension. Please wait until this user is created in your store" />
+                                        <aura:set attribute="else">
+                                            {!(v.dpmEmployee.DPM_Status__c == 'Approved')?'Pending CDSID':''}
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </td>
+                        </aura:if>                
+                    </tr>
+                </aura:set>
+            </aura:if>            
+        </aura:set>
+    </aura:if>
+    {!v.body}
+</aura:component>

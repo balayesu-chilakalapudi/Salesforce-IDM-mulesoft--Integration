@@ -1,0 +1,57 @@
+<aura:component controller= "DPM_PersonnelMasterController" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" >
+    <aura:attribute name="DPMEmployee" type="Map" description="Stores the DPM Employee record" default="{}"/>
+    <aura:attribute name="DPMJobPositions" type="List" description="Stores the DPM Employee Job Positions" default="[]"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="dpmNotificationEvt" event="c:DPM_NotificationModalEvent" action="{!c.handleNotificationEvent}"/>
+	
+    <!--Custom Styles for Modal Header and Footer--> 
+    <aura:html tag="style">
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }   
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+    </aura:html>
+    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>
+    <!--Modal Header-->  
+    <div class="modal-header slds-modal__header slds-size_1-of-1">
+        <h4 class="title slds-text-heading--medium">Corporate Approval</h4>
+    </div>
+    <!--End Modal Header-->  
+    <aura:if isTrue="{!v.DPMEmployee.DPM_Status__c=='Pending Corporate Approval'}">
+        <!--Modal Body-->   
+        <div class="slds-modal__content slds-p-around--x-small slds-align_absolute-center slds-size_1-of-1 slds-is-relative">
+            <form class="slds-form--stacked">
+                Click <b>Approve</b>, if you have confirmed that this is a brand new employee to Volvo.  Click <b>Reject</b>, if you have confirmed that this record Request type is "New" <b>and</b> the employee has previously worked for Volvo.
+            </form> 
+        </div>
+        <!--End of Modal Body--> 
+        
+        <!--Modal Footer-->
+        <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+            <lightning:button variant="Brand" class="slds-button" label="Approve" onclick="{!c.handleApprove}"/>
+			<lightning:button variant="Destructive" class="slds-button" label="Reject" onclick="{!c.handleReject}"/>
+            <lightning:button variant="Neutral" class="slds-button" label="Cancel" onclick="{!c.handleExit}"/>
+        </div>
+        <!--End of Modal Footer-->
+        <aura:set attribute="else">
+            <aura:if isTrue="{!and(v.DPMEmployee.DPM_Status__c != null,v.DPMEmployee.DPM_Status__c != 'Pending Corporate Approval')}">
+                <div class="slds-modal__content slds-p-around--x-small slds-align_absolute-center slds-size_1-of-1 slds-is-relative">
+                    <form class="slds-form--stacked">
+                        This record cannot be approved.
+                    </form> 
+                </div>
+                <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+                    <lightning:button variant="Neutral" class="slds-button" label="Cancel" onclick="{!c.handleExit}"/>
+                </div>
+            </aura:if>
+        </aura:set>
+    </aura:if>
+	{!v.body}
+</aura:component>

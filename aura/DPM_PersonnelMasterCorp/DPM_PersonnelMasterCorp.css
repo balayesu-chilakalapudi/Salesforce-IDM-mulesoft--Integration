@@ -1,0 +1,91 @@
+.THIS.classDPMCorp {
+    background : white;
+}
+.THIS.classDPMCorp .slds-button_brand-reverse  {
+    padding: 0 40px;
+    background-color: #007bcd; 
+    border: 1px solid #007bcd;
+    border-radius: 0;
+    color: #fff;
+    line-height: 42px;
+}
+
+/*  retailer portal styles starting from here  */
+
+.THIS .slds-badge {
+  background-color: #ebebeb;
+  border-radius: 0;
+  color: #595959;
+  font-size: 12px;
+  text-transform: none;
+  transition: background-color .15s, color .15s;
+}
+
+.THIS .slds-button {
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+
+.THIS .slds-button svg {
+  fill: currentColor;
+}
+
+.THIS .slds-button.slds-button_brand,
+.THIS .slds-button.slds-button--brand {
+  padding: 0 40px;
+  background-color: #fff;
+  border: 1px solid #007bcd;
+  border-radius: 0;
+  color: #007bcd;
+  line-height: 42px;
+}
+
+.THIS .slds-button.slds-button_brand:hover,
+.THIS .slds-button.slds-button_brand:focus,
+.THIS .slds-button.slds-button_brand:active,
+.THIS .slds-button.slds-button--brand:hover,
+.THIS .slds-button.slds-button--brand:focus,
+.THIS .slds-button.slds-button--brand:active {
+  background-color: #007bcd !important;
+  color: #fff !important;
+}
+
+.THIS .slds-button.slds-button_neutral,
+.THIS .slds-button.slds-button--neutral {
+  padding: 0;
+  background-color: #fff;
+  border: 0;
+  color: #007bcd;
+  line-height: 42px;
+}
+
+.THIS .slds-button.slds-button_neutral:hover, 
+.THIS .slds-button.slds-button_neutral:focus, 
+.THIS .slds-button.slds-button_neutral:active,
+.THIS .slds-button.slds-button--neutral:hover,
+.THIS .slds-button.slds-button--neutral:focus,
+.THIS .slds-button.slds-button--neutral:active {
+  background-color: #fff;
+  color: #007bcd;
+}
+
+.THIS .slds-button.slds-button_inverse,
+.THIS .slds-button.slds-button--inverse {
+  padding: 0 40px;
+  background-color: rgba(255, 255, 255, .15);
+  border: 1px solid #fff;
+  border-radius: 0;
+  color: #fff;
+  line-height: 42px;
+}
+
+.THIS .slds-button.slds-button_inverse:hover, 
+.THIS .slds-button.slds-button_inverse:focus,
+.THIS .slds-button.slds-button_inverse:active,
+.THIS .slds-button.slds-button--inverse:hover,
+.THIS .slds-button.slds-button--inverse:focus,
+.THIS .slds-button.slds-button--inverse:active {
+  background-color: #fff;
+  color: #007bcd;
+}
+
+/*    end of retailer portal styles */

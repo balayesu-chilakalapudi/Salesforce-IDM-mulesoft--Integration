@@ -1,0 +1,91 @@
+<aura:component>
+    <aura:attribute name="jobPositions" type="List" description="Used to store the Job Positions" default="{}"></aura:attribute>    
+    <aura:attribute name="positionsList" type="List" description="Stores the Positions List" default="['Position1','Position2']"/>
+    <aura:attribute name="primaryPositionsList" type="List" description="Stores the Primary Positions for the DPM Employee"/>
+    <aura:attribute name="ownerPositionsList" type="List" description="Stores the Owner Positions for the DPM Employee"/>
+    <aura:attribute name="blnReadOnly" type="Boolean" description="Displays all the fields in read only mode" default="false"/>
+    <aura:attribute name="lastStartDate" type="String" description="Used to store the last start date" />
+    <aura:attribute name="fromEmployeeProfile" type="Boolean" default="false" description="Indicates whether this component is used in Employee Profile form"/>
+    <aura:attribute name="terminationDate" type="Date" description="Indicates whether Termination date filled"/>
+    
+    <aura:handler name="change" value="{!v.primaryPositionsList}" action="{!c.doInit}"/>
+    
+    <aura:iteration items="{!v.jobPositions}" var="position" indexVar="index">
+        <div class="slds-grid slds-wrap classOuterGrid">
+            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                <div class="uiInput">
+                    <div class="slds-form-element__control" data-row-index="{!index}">
+                        <aura:if isTrue="{!v.fromEmployeeProfile}">
+                            <lightning:select disabled="{!v.blnReadOnly || position.blnAlreadyTerminated  || position.Id!=null}" aura:id="idPosition" label="Position" value="{!position.DPM_Position_Title__c}" title="{!position.DPM_Position_Title__c}" required="true" onchange="{!c.selectionChanged}" messageWhenValueMissing="Select Position">
+                                <aura:iteration items="{!v.positionsList}" var="item">
+                                    <option text="{!item.text}" value="{!item.value}" selected="{!item.value==position.DPM_Position_Title__c}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:select disabled="{!v.blnReadOnly || position.Id!=null}" aura:id="idPosition" label="Position" value="{!position.Name}" title="{!position.Name}" required="true" onchange="{!c.selectionChanged}" messageWhenValueMissing="Select Position">
+                                    <aura:iteration items="{!v.positionsList}" var="item">
+                                        <option text="{!item.text}" value="{!item.value}" selected="{!item.value==position.Name}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                <div class="uiInput">
+                    <div class="slds-form-element__control">
+                        <aura:if isTrue="{!v.fromEmployeeProfile}">
+                            <lightning:input disabled="{!v.blnReadOnly || position.blnAlreadyTerminated}" aura:id="idStartDate" type="date" label="Start Date" dateStyle="short" value="{!position.DPM_Position_Start_Date__c}" required="true" messageWhenValueMissing="Enter Start Date" messageWhenRangeOverflow="Start date cannot be more than 2 months ahead" messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY."/>
+                            <aura:set attribute="else">
+                            	<lightning:input disabled="{!v.blnReadOnly || position.blnAlreadyTerminated}" max="{!v.lastStartDate}" aura:id="idStartDate" type="date" label="Start Date" dateStyle="short" value="{!position.DPM_Start_Date__c}" required="true" messageWhenValueMissing="Enter Start Date" messageWhenRangeOverflow="Start date cannot be more than 2 months ahead" messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY."/>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                <div class="uiInput">
+                    <div class="slds-form-element__control">
+                        <aura:if isTrue="{!v.fromEmployeeProfile}">
+                            <lightning:input disabled="{!v.blnReadOnly || position.Id == null || position.blnAlreadyTerminated}" type="date" label="End Date" dateStyle="short" value="{!position.DPM_Position_End_Date__c}" onchange="{!c.checkEndDate}" messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY."/>
+                            <aura:set attribute="else">
+                            	<lightning:input disabled="{!v.blnReadOnly || position.Id == null || position.blnAlreadyTerminated}" type="date" label="End Date" dateStyle="short" value="{!position.DPM_End_Date__c}" messageWhenBadInput="Your entry does not match the allowed format MM/DD/YYYY."/>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12">
+                <div class="uiInput">
+                    <div class="slds-form-element__control" data-row-index="{!index}">
+                        <aura:if isTrue="{!v.fromEmployeeProfile}">
+                        	<lightning:input disabled="{!v.blnReadOnly || !position.showPrimary || position.blnAlreadyTerminated}" type="checkbox" variant="label-stacked" label="Primary" dateStyle="short" checked="{!position.DPM_Primary_Position__c}" onchange="{!c.primarySelected}"/>
+                            <aura:set attribute="else">
+                                <lightning:input disabled="{!v.blnReadOnly || !position.showPrimary || position.blnAlreadyTerminated}" type="checkbox" variant="label-stacked" label="Primary" dateStyle="short" checked="{!position.DPM_Primary__c}" onchange="{!c.primarySelected}"/>
+                            </aura:set>
+                        </aura:if>                        
+                    </div>
+                </div>
+            </div>
+            <aura:if isTrue="{!!v.blnReadOnly &amp;&amp; position.Id == null}">
+                <aura:if isTrue="{!index != 0}">
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-12">
+                        <label class="slds-form-element__label"></label>
+                        <div class="uiInput">
+                            <div class="slds-form-element__control">
+                                <button data-row-index="{!index}" class="slds-button slds-button_icon" title="Remove" onclick="{!c.removeFromList}">
+                                    <lightning:icon iconName="utility:close" size="small"/>
+                                    <span class="slds-assistive-text">Remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </aura:if>
+            </aura:if>
+        </div>
+    </aura:iteration>  
+   
+    <p style="margin-left:1%;font-size:smaller;">The * indicates Primary positions</p>
+    <br />
+</aura:component>

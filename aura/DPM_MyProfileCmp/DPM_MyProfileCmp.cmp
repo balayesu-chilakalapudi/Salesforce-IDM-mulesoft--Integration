@@ -1,0 +1,46 @@
+<aura:component implements="forceCommunity:availableForAllPageTypes" access="global" controller="DPM_PersonnelMasterController">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="personRole" type="Map" description="Used to store the Person Role for displaying the User Profile"/>
+    <aura:attribute name="blnSuccess" type="Boolean" description="Checks if the profile is successfully loaded" default="false"/>
+    <aura:attribute name="errorMessage" type="String" description="Stores the error message" default=""/>
+    <aura:attribute name="mode" type="String" description="Used to describe the mode - view/edit/admin" default="view"/>
+    <aura:attribute name="adminView" type="Boolean" description="used for conditional rendering of back button" default="false" />
+    <aura:attribute name="isRetailerAdmin" type="boolean" default="true" description="Used to determine whether the current logged in User is Retailer Admin"/>
+    <aura:attribute name="incentivePositionsList" type="List" description="Stores the Incentive Eligible Positions"/>
+    <aura:handler name="refreshDPMEvent" event="c:DPM_PersonnelMasterRefreshEvt" action="{!c.doInit}"/>
+    <aura:handler name="dpmTerminationDateMessagesEvt" event="c:DPM_TerminationDateMessagesEvent" action="{!c.handleTerminationDateMsgEvent}"/>
+    <aura:handler name="dpmEditTerminationDateEvt" event="c:DPM_EditTerminationDateEvent" action="{!c.handleEditTerminationDateEvent}" /> 
+    <aura:handler event="lightning:openFiles" action="{! c.handleOpenFiles }" />
+    <div class="slds-p-vertical_large">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                <h2>Employee Profile</h2>   
+                <ul class="slds-list_horizontal slds-has-dividers_left slds-has-block-links">
+                    <li class="slds-item slds-p-vertical_small"><a href="" target="_blank" onclick="{!c.openSingleFile}">User Guide</a></li>
+                </ul>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                <aura:if isTrue="{!v.blnSuccess &amp;&amp; v.personRole.RE_Psn_NonActive_Date__c==null}">
+                    <div style="text-align:right">
+                        <aura:if isTrue="{!v.adminView}">
+                            <a href="./digital-personnel-master" class="slds-button slds-button_brand-reverse" >Back</a>
+                            <aura:set attribute="else">
+                                <a href="./" class="slds-button slds-button_brand-reverse" >Back</a>
+                            </aura:set>
+                        </aura:if>
+                        <button class="slds-button slds-button_brand-reverse"
+                                title="Edit" onclick="{!c.editProfile}">
+                            Edit
+                        </button>
+                    </div>
+                </aura:if>
+            </div>
+        </div>
+        <aura:if isTrue="{!v.blnSuccess}">
+            <c:DPM_EmployeeProfileForm aura:id="idEmployeeForm" personRole="{!v.personRole}" mode="view" isRetailerAdmin="{!v.isRetailerAdmin}" fromPortal="true" />
+        </aura:if>
+    </div>
+    <div>
+        {!v.body}
+    </div>    
+</aura:component>

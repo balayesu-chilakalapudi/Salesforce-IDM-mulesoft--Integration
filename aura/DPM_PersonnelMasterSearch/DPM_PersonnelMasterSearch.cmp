@@ -1,0 +1,196 @@
+<aura:component controller="DPM_PersonnelMasterController">
+    <aura:attribute name="suffixList" type="List" description="Stores the Suffix Picklist values from the DPM Employee object"/>
+    <aura:attribute name="countryList" type="List" description="Stores the Country Picklist values" default="[]"/>
+    <aura:attribute name="positionsList" type="List" description="Stores the Job Position Picklist values" default="[]"/>
+    <aura:attribute name="accountsList" type="List" description="Stores the Account Name/Id" default="[]"/>
+    <aura:attribute name="dealersList" type="List" description="Stores the Account values" default="[]"/>
+    <aura:attribute name="searchFields" type="Map" default="{'retailerAdmin':false,'showInactiveEmployees':false,'primaryJobOnly':true,'fromPortal':false}" description="Used to store the search field and value map"/>
+    <aura:attribute name="selectedAccount" type="String" description="Stores the selected account"/>
+    <aura:attribute name="corporatePermissions" type="Map" default="{}" description="Used to store corporate permissions"/>
+    <aura:registerEvent name="searchEvent" type="c:DPM_SearchEvent"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.selectedAccount}" action="{!c.handleAccountChange}"/>
+    <section role="dialog" class="slds-modal slds-fade-in-open" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+        <div class="slds-modal__container">                    
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinner"/>                    
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{!c.close}"
+                                      alternativeText="Close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"
+                                      size="large"/>
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                    Search Retailer Employee
+                </h2>                
+            </header>                
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <p>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="idFirstName" type="text" 
+                                                     label="Legal First Name" value="{!v.searchFields.firstName}"                                                                                
+                                                     maxlength="255" messageWhenValueMissing="Enter Legal First Name"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="idLastName" type="text" 
+                                                     label="Last Name" value="{!v.searchFields.lastName}"                                                                                
+                                                     maxlength="255" messageWhenValueMissing="Enter Last Name"/>
+                                </div>
+                            </div>
+                        </div>                   
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select  label="Suffix" value="{!v.searchFields.suffix}">
+                                        <aura:iteration items="{!v.suffixList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.searchFields.suffix}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div> 
+                        </div>                                                  
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:input aura:id="email" type="email" 
+                                                     label="Email" value="{!v.searchFields.email}"                                                                                
+                                                     maxlength="255" messageWhenValueMissing="Enter email"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <span class="slds-form-element__label">Store Name - ID</span>
+                                </div>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-form-element__static">
+                                        <c:DPM_Combobox options="{!v.accountsList}" selectedOption="{!v.selectedAccount}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <lightning:select  label="Country" value="{!v.searchFields.country}">
+                                            <aura:iteration items="{!v.countryList}" var="item">
+                                                <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.searchFields.country}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <lightning:select  label="Job Position" value="{!v.searchFields.jobPosition}">
+                                        <aura:iteration items="{!v.positionsList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.searchFields.jobPosition}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                        </div>-->
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <span class="slds-form-element__label">Display Inactive Employees</span>
+                                </div>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-form-element__static">
+                                        <lightning:input variant="label-hidden" type="checkbox" checked="{!v.searchFields.showInactiveEmployees}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <span class="slds-form-element__label">Primary Job Only</span>
+                                </div>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-form-element__static">
+                                        <lightning:input variant="label-hidden" type="checkbox" checked="{!v.searchFields.primaryJobOnly}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <span class="slds-form-element__label">Retailer Admin</span>
+                                </div>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-form-element__static">
+                                        <lightning:input variant="label-hidden" type="checkbox" checked="{!v.searchFields.retailerAdmin}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <span class="slds-form-element__label">VPID</span>
+                                </div>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-form-element__static">
+                                        <lightning:input variant="label-hidden" type="text" value="{!v.searchFields.VPID}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <aura:if isTrue="{!v.corporatePermissions.searchSSN}">
+                            <div class="slds-col slds-size_1-of-1 slds-small-size_1-of-1 slds-medium-size_4-of-12"> 
+                                <div class="uiInput">
+                                    <div class="slds-form-element__control">
+                                        <span class="slds-form-element__label">SSN</span>
+                                    </div>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">
+                                            <lightning:input aura:id="ssninput" variant="label-hidden"  placeholder="XXXXXXXXX" value="{!v.searchFields.SSN}" onblur="{!c.formatSSN}" pattern="{!$Label.c.DPM_SSN_Pattern}" messageWhenPatternMismatch="You have entered an invalid format" messageWhenBadInput="You have entered and invalid format" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <div class="slds-col slds-size_1-of-1"> 
+                            <div class="uiInput">
+                                <div class="slds-form-element__control">
+                                    <!--<lightning:select  label="Job Position" value="{!v.searchFields.jobPosition}">
+                                        <aura:iteration items="{!v.positionsList}" var="item">
+                                            <option text="{!item.text}" value="{!item.value}" selected="{!item.value==v.searchFields.jobPosition}"></option>
+                                        </aura:iteration>
+                                    </lightning:select>-->
+                                    <lightning:dualListbox name="Job Position"
+                                                           label= "Job Position"
+                                                           sourceLabel="Available"
+                                                           selectedLabel="Selected"
+                                                           fieldLevelHelp="Select your preferred JobPositions"
+                                                           options="{!v.positionsList}"
+                                                           onchange="{! c.handleChange }"
+                                                           size="4"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>    
+                </p>
+            </div>
+            <footer class="slds-modal__footer">
+                <button class="slds-button slds-button_brand" onclick="{!c.searchEmployeeCreationStatus}">Employee Creation Status</button>
+                <button class="slds-button slds-button_brand" onclick="{!c.search}">Search</button>
+                <button class="slds-button slds-button_brand" onclick="{!c.close}">Cancel</button>                   
+            </footer>
+        </div>
+    </section>                                                                                       
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:component>

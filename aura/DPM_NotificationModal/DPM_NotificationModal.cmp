@@ -1,0 +1,110 @@
+<aura:component>
+    <aura:attribute name="strModalHeader" type="String" default=""/>
+    <aura:attribute name="strModalBody" type="String" default=""/>
+    <aura:attribute name="strModalType" type="String" default=""/>
+    <aura:attribute name="strSelectedRecordId" type="String" default=""/>
+    <aura:attribute name="lstDuplicateRecords" type="List" description="Stores the duplicate records found from the SF DB"/>
+    <aura:attribute name="isSupplier" type="Boolean" description="Use to Disable confirm Button in Case of Supplier Employee"/>
+    
+    <aura:registerEvent name="dpmNotificationEvt" type="c:DPM_NotificationModalEvent"/>
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container classSmallModal">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" class="slds-hide" aura:id="idSpinnerModal"/>
+            <header class="slds-modal__header">
+                <aura:if isTrue="{!v.strModalType == 'duplicate' || v.strModalType == 'alert'}">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{!c.cancel}"
+                                          alternativeText="Close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"
+                                          size="large"/>
+                    <aura:set attribute="else">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{!c.cancelClicked}"
+                                              alternativeText="Close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"
+                                              size="large"/>
+                    </aura:set>
+                </aura:if>                
+                <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">{!v.strModalHeader}</h2>                    
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">                
+                <aura:if isTrue="{!v.strModalType == 'duplicate'}">
+                    <div class="slds-m-left_small">
+                        <span>{!v.strModalBody}</span>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-align_absolute-center">
+                            <span>{!v.strModalBody}</span>
+                        </div>
+                    </aura:set>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'duplicate'}">
+                    <p>
+                        <table class="slds-table classSmallTable">
+                            <tbody>	
+                                <aura:iteration items="{!v.lstDuplicateRecords}" var="duplicateRecord">
+                                    <tr>
+                                        <td>
+                                            <div title="Select">
+                                                <span class="slds-radio">
+                                                    <input type="radio" id="{!duplicateRecord.recordId}" name="DuplicateRecord" onclick="{!c.recordSelected}"/>
+                                                    <label class="slds-radio__label" for="{!duplicateRecord.recordId}">
+                                                        <span class="slds-radio_faux"></span>
+                                                    </label>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {!duplicateRecord.accountName}
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>   
+                    </p>                     
+                </aura:if>
+            </div>
+            <footer class="slds-modal__footer">  
+                <aura:if isTrue="{!v.strModalType == 'alert'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancel}">Ok</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'alert_styletwo'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancelClicked}">Ok</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'duplicate'}">
+                    <button disabled="{!v.strSelectedRecordId ==''}" class="slds-button slds-button_brand" onclick="{!c.submitClicked}">Submit</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.yesClicked}">Yes</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancelClicked}">No</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation_styletwo'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.okClicked}">Ok</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancelClicked}">Cancel</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation_stylethree'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.backClicked}">Back</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.saveClicked}">Save</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation_stylefour'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.submitClickedNew}">Submit</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancelClicked}">Cancel</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation_btns_confirm_cancel'}">
+                    <button class="slds-button slds-button_brand" onclick="{!c.confirmClicked}">Confirm</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.cancelClicked}">Cancel</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation_btns_confirm_back'}">
+                    <button class="slds-button slds-button_brand" disabled="{!v.isSupplier}" onclick="{!c.confirmClicked}">Confirm</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.backClicked}">Back</button>
+                </aura:if>
+                <aura:if isTrue="{!v.strModalType == 'confirmation_btns_confirm_W9'}">
+                    <button class="slds-button slds-button_brand"  onclick="{!c.confirmClicked}">Confirm</button>
+                </aura:if>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:component>
